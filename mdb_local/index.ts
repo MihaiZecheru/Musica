@@ -30,20 +30,26 @@ export type entryid = number;
 export type TEntry = Record<fieldname, fieldvalue>;
 
 /**
- * Parsed table entry type
- */
-export type TParsedEntry = Record<fieldname, any>;
-
-/**
- * Custom filter function type for applying to table entries
+ * Custom filter function type for applying to table entries using the Table.get_with_filter() method
  */
 export type TEntriesFilter = (entry: TEntry) => boolean;
 
 /**
  * Custom function for parsing table entries, as all fields are by default unparsed strings and might need to be converted to numbers, booleans, dates, a class instance, etc.
  * This function can also be used to convert a TEntry record (which is a Record<fieldname, fieldvalue>) to a custom type (e.g. a class instance)
+ * This custom type returned is indicated by the generic type T
+ * 
+ * @example
+ * class User {
+ *  public readonly name: string;
+ *  public readonly password: string;
+ * }
+ * 
+ * const parseFunction: TParseEntryFieldsFunction = (entry: TEntry): User => {
+ *  return new User(entry.name, entry.password);
+ * }
  */
-export type TParseEntryFieldsFunction = (entry: TEntry) => TParsedEntry;
+export type TParseEntryFieldsFunction = (entry: TEntry) => any;
 
 /**
  * Raw JSON table type
@@ -99,10 +105,10 @@ export class Table {
   /**
    * Change the parse function used to parse table entries
    * @param parseFunction The function to use for parsing table entries, as all fields are by default unparsed strings and might need to be converted to numbers, booleans, dates, a class instance, etc.
+   * @note This will only affect the table object, not the table in the Database's memory. To update the table in the Database's memory, use the Database.set_parse_function() method
    */
   public set_parse_function(parseFunction: TParseEntryFieldsFunction): void {
-    // The method is called from the Database class in order to update the table in the Database's memory, not just on this object
-    Database.set_table_parse_function(this.name, parseFunction);
+    this.parseFunction = parseFunction;
   }
 
   /**
