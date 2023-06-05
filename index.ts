@@ -29,6 +29,7 @@ Database.connect();
 Database.set_table_parse_function("Users", (entry: TEntry): TUser => {
   return {
     id: entry.id,
+    name: entry.name,
     email: entry.email,
     password: entry.password,
     created_on: new Date(entry.created_on)
