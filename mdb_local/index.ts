@@ -145,10 +145,12 @@ export class Table {
    * @throws Error if a field is missing in data or if there are too many fields in data
    */
   private write_to_file(id: entryid, data: TEntry): void {
+    data['id'] = id.toString();
+    
     let stringified_data = "";
     for (const fieldname of this.fieldnames) {
       const value = data[fieldname];
-      if (!value && fieldname !== 'id') throw new Error(`Field '${fieldname}' is missing in data`);
+      if (!value) throw new Error(`Field '${fieldname}' is missing in data`);
       stringified_data += `${Table.ENTRY_SEP}${value}${Table.ENTRY_SEP}\n`;
     }
 
