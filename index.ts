@@ -51,6 +51,10 @@ function get_ip(req: any) {
   return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 }
 
+function login(ip: string) {
+  users_logged_in[ip] = true;
+}
+
 function logout(ip: string) {
   delete users_logged_in[ip];
 }
@@ -66,7 +70,6 @@ app.get("/login", (req: any, res: any) => {
 });
 
 app.post("/login", jsonParser, (req: any, res: any) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const { email, password } = req.body;
 
   if (email == undefined || password == undefined) {
@@ -77,7 +80,7 @@ app.post("/login", jsonParser, (req: any, res: any) => {
   if (user == undefined) return res.status(400).send(`User with email "${email}" does not exist`);
   if (user.password != password) return res.status(400).send("Password invalid");
   
-  users_logged_in[ip] = true;
+  login(get_ip(req));
   return res.status(200);
 });
 
@@ -101,6 +104,7 @@ app.post("/register", jsonParser, (req: any, res: any) => {
     created_date: new Date().toISOString()
   });
 
+  login(get_ip(req));
   return res.status(200);
 });
 
