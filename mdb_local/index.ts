@@ -148,7 +148,7 @@ export class Table {
     let stringified_data = "";
     for (const fieldname of this.fieldnames) {
       const value = data[fieldname];
-      if (!value) throw new Error(`Field '${fieldname}' is missing in data`);
+      if (!value && fieldname === 'id') throw new Error(`Field '${fieldname}' is missing in data`);
       stringified_data += `${Table.ENTRY_SEP}${value}${Table.ENTRY_SEP}\n`;
     }
 
