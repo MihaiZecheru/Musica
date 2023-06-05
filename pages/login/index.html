@@ -52,23 +52,23 @@
 
             <!-- Email input -->
             <div class="form-outline mb-4">
-              <input type="email" id="form3Example3" class="form-control form-control-lg"
+              <input type="email" id="email-input" class="form-control form-control-lg"
                 placeholder="Enter a valid email address" />
-              <label class="form-label" for="form3Example3">Email address</label>
+              <label class="form-label" for="email-input">Email address</label>
             </div>
 
             <!-- Password input -->
             <div class="form-outline mb-3">
-              <input type="password" id="form3Example4" class="form-control form-control-lg"
+              <input type="password" id="password-input" class="form-control form-control-lg"
                 placeholder="Enter password" />
-              <label class="form-label" for="form3Example4">Password</label>
+              <label class="form-label" for="password-input">Password</label>
             </div>
 
             <div class="d-flex justify-content-between align-items-center">
               <!-- Checkbox -->
               <div class="form-check mb-0">
-                <input class="form-check-input me-2" type="checkbox" value="" id="form2Example3" />
-                <label class="form-check-label" for="form2Example3">
+                <input class="form-check-input me-2" type="checkbox" value="" id="remember-me-box" />
+                <label class="form-check-label" for="remember-me-box">
                   Remember me
                 </label>
               </div>
@@ -84,8 +84,59 @@
           </form>
 
           <script>
-            document.getElementById("login").addEventListener("click", () => {
-              document.querySelector("form").submit();
+            window.onload = () => {
+              document.getElementById("email-input").focus();
+            }
+
+            function submit_form() {
+              const email_box = document.getElementById("email-input");
+              const password_box = document.getElementById("password-input");
+
+              if (email_box.value === "") {
+                email_box.classList.add("is-invalid");
+                email_box.focus();
+                return;
+              }
+
+              if (password_box.value === "") {
+                password_box.classList.add("is-invalid");
+                password_box.focus();
+                return;
+              }
+
+              const login_btn = document.getElementById("login");
+              login_btn.disabled = true;
+
+              fetch("/login", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  email: email_box.value,
+                  password: password_box.value,
+                })
+              }).then((res) => res.text()).then((data) => {
+                  if (data.success) {
+                    window.location.href = "/";
+                  } else {
+                    login_btn.disabled = false;
+                  }
+                });
+            }
+
+            document.getElementById("login").addEventListener("click", submit_form);
+            
+            document.getElementById("email-input").addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                document.getElementById("password-input").focus();
+                const email_box = document.getElementById("email-input");
+                if (email_box.value !== "") email_box.classList.remove("is-invalid");
+              }
+            });
+
+            document.getElementById("password-input").addEventListener("keydown", (e) => {
+              if (e.key === "Enter") submit_form();
             });
           </script>
         </div>
@@ -95,7 +146,7 @@
       class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
       <!-- Copyright -->
       <div class="text-white mb-3 mb-md-0">
-        Copyright © 2020. All rights reserved.
+        Copyright © 2023. All rights reserved.
       </div>
       <!-- Copyright -->
 
