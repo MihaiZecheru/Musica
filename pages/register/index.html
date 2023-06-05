@@ -87,4 +87,103 @@
       </div>
     </div>
   </section>
+
+  <div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="error-modal">Error</h5>
+          <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="error-modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="passwords-match-error-modal" tabindex="-1" aria-labelledby="passwords-match-error-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="passwords-match-error-modal">Invalid Password</h5>
+          <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">Passwords do not match</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const registerBtn = document.getElementById('register-btn');
+    const nameInput = document.getElementById('name-input');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    const repeatPasswordInput = document.getElementById('repeat-password-input');
+
+    registerBtn.addEventListener('click', () => {
+      const name = nameInput.value;
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      const repeatPassword = repeatPasswordInput.value;
+
+      if (name === '') {
+        return document.getElementById("name-input").classList.add('invalid');
+      } else if (email === '') {
+        return document.getElementById("email-input").classList.add('invalid');
+      } else if (password === '') {
+        return document.getElementById("password-input").classList.add('invalid');
+      } else if (repeatPassword === '') {
+        return document.getElementById("repeat-password-input").classList.add('invalid');
+      }
+
+      if (password !== repeatPassword) {
+        return new mdb.Modal(document.getElementById('passwords-match-error-modal')).show();
+      }
+
+      function err(data = {}) {
+        console.error(data.error);
+        document.getElementById('error-modal-body').innerText = data.error;
+        new mdb.Modal(document.getElementById('error-modal')).show();
+        document.getElementById("name-input").classList.remove('invalid');
+        document.getElementById("email-input").classList.remove('invalid');
+        document.getElementById("password-input").classList.remove('invalid');
+        document.getElementById("repeat-password-input").classList.remove('invalid');
+      }
+
+      fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
+      }).then(res => res.json()).then(data => {
+        if (!data.ok) return err(data);
+        window.location.href = '/';
+      })
+      .catch(error => { err({ error }) });
+    });
+
+    document.getElementById("name-input").addEventListener('keydown', (e) => {
+      if (e.key === "Enter") document.getElementById("email-input").focus();
+    });
+
+    document.getElementById("email-input").addEventListener('keydown', (e) => {
+      if (e.key === "Enter") document.getElementById("password-input").focus();
+    });
+
+    document.getElementById("password-input").addEventListener('keydown', (e) => {
+      if (e.key === "Enter") document.getElementById("repeat-password-input").focus();
+    });
+
+    document.getElementById("repeat-password-input").addEventListener('keydown', (e) => {
+      if (e.key === "Enter") registerBtn.click();
+    });
+
+    window.onload = () => document.getElementById("name-input").focus();
+  </script>
 </body>

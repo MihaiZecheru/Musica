@@ -86,6 +86,24 @@ app.get("/register", (req: any, res: any) => {
   return res.sendFile("/pages/register/index.html", { root: __dirname });
 });
 
+app.post("/register", jsonParser, (req: any, res: any) => {
+  const { name, email, password } = req.body;
+
+  if (name == undefined || email == undefined || password == undefined) {
+    return res.status(400).send("Name, email, or password not provided");
+  }
+
+  const user = Database.get_where("Users", "email", email)[0];
+  if (user != undefined) return res.status(400).send({ error: `User with email "${email}" already exists` });
+
+  Database.post("Users", {
+    name, email, password,
+    created_date: new Date().toISOString()
+  });
+
+  return res.status(200);
+});
+
 app.get("/song/:id", async (req: any, res: any) => {
   if (login_required(req, res)) return res.redirect("/login");
 
