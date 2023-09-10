@@ -65,11 +65,6 @@ type TRawTable = {
  */
 export class Table {
   /**
-   * The separator used to separate fields in an entry
-   */
-  static ENTRY_SEP: string = "{<@SEP>}"; 
-  
-  /**
    * The name of the table
    */
   public readonly name: string;
@@ -151,7 +146,7 @@ export class Table {
     for (const fieldname of this.fieldnames) {
       const value = data[fieldname];
       if (!value) throw new Error(`Field '${fieldname}' is missing in data`);
-      stringified_data += `${Table.ENTRY_SEP}${value}${Table.ENTRY_SEP}\n`;
+      stringified_data += `${value}\n`;
     }
 
     if (Object.keys(data).length - 1 > this.fieldnames.length) throw new Error(`Too many fields in data`);
@@ -163,11 +158,11 @@ export class Table {
    * @param id The id of the entry to get
    * @returns The entry with the given id if it exists, otherwise null
    */
-  public get(id: entryid): TEntry | null {
+  public get<T = TEntry>(id: entryid): T | null {
     if (!fs.existsSync(this.entry_path(id))) return null;
 
     const raw_entry = fs.readFileSync(this.entry_path(id), { encoding: 'utf8', flag: 'r' });
-    const entries = raw_entry.match(new RegExp(`${Table.ENTRY_SEP}(.*?)${Table.ENTRY_SEP}`, 'g')).map((match: string) => match.substring(Table.ENTRY_SEP.length, match.length - Table.ENTRY_SEP.length));
+    const entries = raw_entry.split('\n');
     
     let record: TEntry = {};
     for (let i = 0; i < this.fieldnames.length; i++) {
@@ -219,130 +214,316 @@ export class Table {
 
   /**
    * Get all entries in the table
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
    * @returns Every entry in the table
+   * @throws Error if the database is not connected
    */
-  public get_all(): Array<TEntry> {
+  public get_all<T = TEntry>(): Array<T> {
     return fs.readdirSync(this.folder).map((id: string) => this.parseFunction(this.get(parseInt(id))!));
+  }
+  
+  /**
+   * Get all entries in the table in the form of TEntry records.
+   * Used internally to allow filter-queries to be applied to the table entries before parsing them
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns Every entry in the table without parsing the entry
+   * @throws Error if the database is not connected
+   */
+  private get_all_no_parse(): Array<TEntry> {
+    return fs.readdirSync(this.folder).map((id: string) => this.get(parseInt(id))!);
   }
 
   /**
    * Get all entries that pass the given filter
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
    * @param filter The filter to apply to each of the entries
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
    * @returns All entries that pass the given filter
+   * @throws Error if the database is not connected
    */
-  public get_with_filter(filter: TEntriesFilter): Array<TEntry> {
-    return this.get_all().filter(filter);
+  public get_with_filter<T = TEntry>(filter: TEntriesFilter): Array<T> {
+    return this.get_all_no_parse().filter(filter).map((entry: TEntry) => this.parseFunction(entry));
   }
 
   /**
-   * Get all entries where the field with the given name is equal to the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
-   * @param fieldname The name of the field to compare the given value with
-   * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is equal to the given value
+   * Assuming there is only one entry that matches the search, get the entry that passes the given filter
+   * @param filter The filter to apply to each of the entries
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries that pass the given filter
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public get_where(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] === value);
+  public get_unique_with_filter<T = TEntry>(filter: TEntriesFilter): T {
+    return this.get_all_no_parse().filter(filter).map((entry: TEntry) => this.parseFunction(entry))[0];
   }
 
   /**
-   * Get all entries where the field with the given name is not equal to the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Get all entries where the given field is equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is not equal to the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is equal to the given value
+   * @throws Error if the database is not connected
    */
-  public get_where_not(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] !== value);
+  public get_where<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname] === value).map((entry: TEntry) => this.parseFunction(entry));
   }
 
   /**
-   * Get all entries where the field with the given name is greater than the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Assuming there is only one entry that matches the search, get the entry where the given field is equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is greater than the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is equal to the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public get_where_gt(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] > value);
+  public get_unique_where<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname] === value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
   }
 
   /**
-   * Get all entries where the field with the given name is less than the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Get all entries where the given field is not equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is less than the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is not equal to the given value
+   * @throws Error if the database is not connected
    */
-  public get_where_lt(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] < value);
+  public get_where_not<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname] !== value).map((entry: TEntry) => this.parseFunction(entry));
   }
 
   /**
-   * Get all entries where the field with the given name is greater than or equal to the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Assuming there is only one entry that matches the search, get the entry where the given field is not equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is greater than or equal to the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is not equal to the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public get_where_gte(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] >= value);
+  public get_unique_where_not<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname] !== value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
   }
 
   /**
-   * Get all entries where the field with the given name is less than or equal to the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Get all entries where the given field is greater than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name is less than or equal to the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is greater than the given value
+   * @throws Error if the database is not connected
    */
-  public get_where_lte(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname] <= value);
+  public get_where_gt<T = TEntry>(fieldname: fieldname, value: number): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) > value).map((entry: TEntry) => this.parseFunction(entry));
   }
 
   /**
-   * Get all entries where the field with the given name contains the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Assuming there is only one entry that matches the search, get the entry where the given field is greater than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name contains the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is greater than the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public get_where_contains(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname].includes(value));
+  public get_unique_where_gt<T = TEntry>(fieldname: fieldname, value: number): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) > value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
   }
 
   /**
-   * Get all entries where the field with the given name does not contain the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Get all entries where the given field is less than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name does not contain the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is less than the given value
+   * @throws Error if the database is not connected
    */
-  public get_where_not_contains(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => !entry[fieldname].includes(value));
+  public get_where_lt<T = TEntry>(fieldname: fieldname, value: number): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) < value).map((entry: TEntry) => this.parseFunction(entry));
   }
 
   /**
-   * Get all entries where the field with the given name starts with the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Assuming there is only one entry that matches the search, get the entry where the given field is less than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name starts with the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is less than the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public get_where_starts_with(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname].startsWith(value));
+  public get_unique_where_lt<T = TEntry>(fieldname: fieldname, value: number): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) < value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
   }
 
   /**
-   * Get all entries where the field with the given name ends with the given value
-   * @important The filter is applied after the parseFunction has been applied to each of the entries 
+   * Get all entries where the given field is greater than or equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries where the field with the given name ends with the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is greater than or equal to the given value
+   * @throws Error if the database is not connected
    */
-  public get_where_ends_with(fieldname: fieldname, value: string): Array<TEntry> {
-    return this.get_all().filter((entry: TEntry) => entry[fieldname].endsWith(value));
+  public get_where_gte<T = TEntry>(fieldname: fieldname, value: number): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) >= value).map((entry: TEntry) => this.parseFunction(entry));
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry where the given field is greater than or equal to the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is greater than or equal to the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_gte<T = TEntry>(fieldname: fieldname, value: number): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) >= value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
+  }
+
+  /**
+   * Get all entries where the given field is less than or equal to the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is less than or equal to the given value
+   * @throws Error if the database is not connected
+   */
+  public get_where_lte<T = TEntry>(fieldname: fieldname, value: number): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) <= value).map((entry: TEntry) => this.parseFunction(entry));
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry where the given field is less than or equal to the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field is less than or equal to the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_lte<T = TEntry>(fieldname: fieldname, value: number): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => parseFloat(entry[fieldname]) <= value).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
+  }
+
+  /**
+   * Get all entries where the given field contains the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field contains the given value
+   * @throws Error if the database is not connected
+   */
+  public get_where_contains<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].includes(value)).map((entry: TEntry) => this.parseFunction(entry));
+  }
+  
+  /**
+   * Assuming there is only one entry that matches the search, get the entry where the given field contains the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field contains the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_contains<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].includes(value)).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
+  }
+
+  /**
+   * Get all entries where the given field does not contain the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field does not contain the given value
+   * @throws Error if the database is not connected
+   */
+  public get_where_not_contains<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => !entry[fieldname].includes(value)).map((entry: TEntry) => this.parseFunction(entry));
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry where the given field does not contain the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field does not contain the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_not_contains<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => !entry[fieldname].includes(value)).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
+  }
+
+  /**
+   * Get all entries where the given field starts with the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field starts with the given value
+   * @throws Error if the database is not connected
+   */
+  public get_where_starts_with<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].startsWith(value)).map((entry: TEntry) => this.parseFunction(entry));
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry where the given field starts with the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field starts with the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_starts_with<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].startsWith(value)).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
+  }
+
+  /**
+   * Get all entries where the given field ends with the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field ends with the given value
+   * @throws Error if the database is not connected
+   */
+  public get_where_ends_with<T = TEntry>(fieldname: fieldname, value: string): Array<T> {
+    return this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].endsWith(value)).map((entry: TEntry) => this.parseFunction(entry));
+  }
+
+  /**
+   * Assumes there is only one entry that matches the search, get the entry where the given field ends with the given value
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries where the given field ends with the given value
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public get_unique_where_ends_with<T = TEntry>(fieldname: fieldname, value: string): T {
+    const result = this.get_all_no_parse().filter((entry: TEntry) => entry[fieldname].endsWith(value)).map((entry: TEntry) => this.parseFunction(entry));
+    if (result.length !== 1) throw new Error(`Expected 1 entry, got ${result.length}. This function should only be used when it's known that only one entry will be returned.`);
+    return result[0];
   }
 
   // *** FILTER-QUERY PATCH METHODS *** ///
@@ -369,7 +550,7 @@ export class Table {
   }
 
   /**
-   * Update all entries in the table with the values in updated_fields where the field with the given name is equal to the given value
+   * Update all entries in the table with the values in updated_fields where the given field is equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -381,7 +562,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name is not equal to the given value
+   * Get all entries where the given field is not equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -393,7 +574,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name is greater than the given value
+   * Get all entries where the given field is greater than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -405,7 +586,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name is less than the given value
+   * Get all entries where the given field is less than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -417,7 +598,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name is greater than or equal to the given value
+   * Get all entries where the given field is greater than or equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -429,7 +610,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name is less than or equal to the given value
+   * Get all entries where the given field is less than or equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -441,7 +622,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name contains the given value
+   * Get all entries where the given field contains the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -453,7 +634,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name does not contain the given value
+   * Get all entries where the given field does not contain the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -465,7 +646,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name starts with the given value
+   * Get all entries where the given field starts with the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -477,7 +658,7 @@ export class Table {
   }
 
   /**
-   * Get all entries where the field with the given name ends with the given value
+   * Get all entries where the given field ends with the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    * @param updated_fields The fields to update
@@ -511,7 +692,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is equal to the given value
+   * Delete all entries where the given field is equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -522,7 +703,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is not equal to the given value
+   * Delete all entries where the given field is not equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -533,7 +714,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is greater than the given value
+   * Delete all entries where the given field is greater than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -544,7 +725,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is less than the given value
+   * Delete all entries where the given field is less than the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -555,7 +736,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is greater than or equal to the given value
+   * Delete all entries where the given field is greater than or equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -566,7 +747,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name is less than or equal to the given value
+   * Delete all entries where the given field is less than or equal to the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -577,7 +758,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name contains the given value
+   * Delete all entries where the given field contains the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -588,7 +769,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name does not contain the given value
+   * Delete all entries where the given field does not contain the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -599,7 +780,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name starts with the given value
+   * Delete all entries where the given field starts with the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -610,7 +791,7 @@ export class Table {
   }
 
   /**
-   * Delete all entries where the field with the given name ends with the given value
+   * Delete all entries where the given field ends with the given value
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
    */
@@ -656,7 +837,9 @@ export default class Database {
     if (this.connected) throw new Error("Database already connected");
     
     if (!fs.existsSync(this.database_folder)) {
-      fs.mkdir(this.database_folder);
+      fs.mkdir(this.database_folder, (err: any) => {
+        if (err) throw err;
+      });
     }
 
     if (fs.existsSync(this.tables_info_file)) {
@@ -667,9 +850,19 @@ export default class Database {
   }
 
   /**
+   * Disconnect from the database
+   * @throws Error if the database was not previously connected
+   */
+  public static disconnect(): void {
+    if (!this.connected) throw new Error("Database not connected");
+    this.tables = [];
+    this.connected = false;
+  }
+
+  /**
    * Get an existing table from the database
    * @param tablename The name of the table to get
-   * @returns The table with the given tablename
+   * @returns The given table
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
@@ -681,7 +874,7 @@ export default class Database {
   }
 
   /**
-   * Set the parse function for the table with the given tablename
+   * Set the parse function for the given table
    * @param tablename The name of the table to set the parse function for
    * @param parseFunction The function to use to parse the entry fields
    * @throws Error if the table does not exist
@@ -695,20 +888,20 @@ export default class Database {
   }
 
   /**
-   * Get an entry with the given id from the table with the given tablename
+   * Get an entry with the given id from the given table
    * @param tablename The name of the table to get the entry from
    * @param id The id of the entry to get
    * @returns The entry with the given id if it exists, otherwise null
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get(tablename: string, id: entryid): TEntry | null {
+  public static get<T = TEntry>(tablename: string, id: entryid): T | null {
     const table = this.get_table(tablename);
-    return table.get(id);
+    return table.get<T>(id);
   }
 
   /**
-   * Create a new entry in the table with the given tablename
+   * Create a new entry in the given table
    * @param tablename The name of the table to create the entry in
    * @param data The entry data
    * @throws Error if the table does not exist
@@ -720,7 +913,7 @@ export default class Database {
   }
 
   /**
-   * Update the entry with the given id in the table with the given tablename
+   * Update the entry with the given id in the given table
    * @param tablename The name of the table to update the entry in
    * @param id The id of the entry to update
    * @param updated_fields The fields to update
@@ -733,7 +926,7 @@ export default class Database {
   }
 
   /**
-   * Delete the entry with the given id from the table with the given tablename
+   * Delete the entry with the given id from the given table
    * @param tablename The name of the table to delete the entry from
    * @param id The id of the entry to delete
    * @throws Error if the table does not exist
@@ -747,174 +940,361 @@ export default class Database {
   /// *** FILTER-QUERY GET METHODS *** ///
 
   /**
-   * Get all entries from the table with the given tablename
+   * Get all entries from the given table
    * @param tablename The name of the table to get the entry from
-   * @returns All entries from the table with the given tablename
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_all(tablename: string): Array<TEntry> {
+  public static get_all<T = TEntry>(tablename: string): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_all();
+    return table.get_all<T>();
   }
 
   /**
-   * Get all entries from the table with the given tablename that pass the given filter
+   * Get all entries from the given table that pass the given filter
    * @param tablename The name of the table to get the entry from 
    * @param filter The filter to apply to the entries
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
    * @returns The entries that pass the given filter
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_with_filter(tablename: string, filter: TEntriesFilter): Array<TEntry> {
+  public static get_with_filter<T = TEntry>(tablename: string, filter: TEntriesFilter): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_with_filter(filter);
+    return table.get_with_filter<T>(filter);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name equals the given value
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field passes the filter
+   * @param tablename The name of the table to get the entry from 
+   * @param filter The filter to apply to the entries
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry that passes the given filter
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_with_filter<T = TEntry>(tablename: string, filter: TEntriesFilter): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_with_filter<T>(filter);
+  }
+
+  /**
+   * Get all entries from the given table where the given field equals the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name equals the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field equals the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where(fieldname, value);
+    return table.get_where<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field equals the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field equals the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where<T>(fieldname, value);
   }
   
   /**
-   * Get all entries from the table with the given tablename where the field with the given name does not equal the given value
+   * Get all entries from the given table where the given field does not equal the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name does not equal the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field does not equal the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where_not(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where_not<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where_not(fieldname, value);
+    return table.get_where_not<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name is greater than the given value
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name is greater than the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field does not equal the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public static get_where_gt(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_unique_where_not<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
     const table = this.get_table(tablename);
-    return table.get_where_gt(fieldname, value);
+    return table.get_unique_where_not<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name is less than the given value
+   * Get all entries from the given table where the given field is greater than the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name is less than the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field is greater than the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where_lt(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where_gt<T = TEntry>(tablename: string, fieldname: fieldname, value: number): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where_lt(fieldname, value);
+    return table.get_where_gt<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name is greater than or equal to the given value
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field is greater than the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name is greater than or equal to the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field is greater than the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public static get_where_gte(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_unique_where_gt<T = TEntry>(tablename: string, fieldname: fieldname, value: number): T {
     const table = this.get_table(tablename);
-    return table.get_where_gte(fieldname, value);
+    return table.get_unique_where_gt<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name is less than or equal to the given value
+   * Get all entries from the given table where the given field is less than the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name is less than or equal to the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field is less than the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where_lte(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where_lt<T = TEntry>(tablename: string, fieldname: fieldname, value: number): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where_lte(fieldname, value);
+    return table.get_where_lt<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name contains the given value
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field is less than the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name contains the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field is less than the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public static get_where_contains(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_unique_where_lt<T = TEntry>(tablename: string, fieldname: fieldname, value: number): T {
     const table = this.get_table(tablename);
-    return table.get_where_contains(fieldname, value);
+    return table.get_unique_where_lt<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name does not contain the given value
+   * Get all entries from the given table where the given field is greater than or equal to the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name does not contain the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field is greater than or equal to the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where_not_contains(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where_gte<T = TEntry>(tablename: string, fieldname: fieldname, value: number): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where_not_contains(fieldname, value);
+    return table.get_where_gte<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name starts with the given value
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field is greater than or equal to the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name starts with the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field is greater than or equal to the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
    */
-  public static get_where_starts_with(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_unique_where_gte<T = TEntry>(tablename: string, fieldname: fieldname, value: number): T {
     const table = this.get_table(tablename);
-    return table.get_where_starts_with(fieldname, value);
+    return table.get_unique_where_gte<T>(fieldname, value);
   }
 
   /**
-   * Get all entries from the table with the given tablename where the field with the given name ends with the given value
+   * Get all entries from the given table where the given field is less than or equal to the given value
    * @param tablename The name of the table to get the entry from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
-   * @returns All entries from the table with the given tablename where the field with the given name ends with the given value
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field is less than or equal to the given value
    * @throws Error if the table does not exist
    * @throws Error if the database is not connected
    */
-  public static get_where_ends_with(tablename: string, fieldname: fieldname, value: string): Array<TEntry> {
+  public static get_where_lte<T = TEntry>(tablename: string, fieldname: fieldname, value: number): Array<T> {
     const table = this.get_table(tablename);
-    return table.get_where_ends_with(fieldname, value);
+    return table.get_where_lte<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field is less than or equal to the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field is less than or equal to the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where_lte<T = TEntry>(tablename: string, fieldname: fieldname, value: number): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where_lte<T>(fieldname, value);
+  }
+
+  /**
+   * Get all entries from the given table where the given field contains the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field contains the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   */
+  public static get_where_contains<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
+    const table = this.get_table(tablename);
+    return table.get_where_contains<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field contains the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field contains the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where_contains<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where_contains<T>(fieldname, value);
+  }
+
+  /**
+   * Get all entries from the given table where the given field does not contain the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field does not contain the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   */
+  public static get_where_not_contains<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
+    const table = this.get_table(tablename);
+    return table.get_where_not_contains<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field does not contain the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field does not contain the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where_not_contains<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where_not_contains<T>(fieldname, value);
+  }
+
+  /**
+   * Get all entries from the given table where the given field starts with the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field starts with the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   */
+  public static get_where_starts_with<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
+    const table = this.get_table(tablename);
+    return table.get_where_starts_with<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field starts with the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field starts with the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where_starts_with<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where_starts_with<T>(fieldname, value);
+  }
+
+  /**
+   * Get all entries from the given table where the given field ends with the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns All entries from the given table where the given field ends with the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   */
+  public static get_where_ends_with<T = TEntry>(tablename: string, fieldname: fieldname, value: string): Array<T> {
+    const table = this.get_table(tablename);
+    return table.get_where_ends_with<T>(fieldname, value);
+  }
+
+  /**
+   * Assuming there is only one entry that matches the search, get the entry from the given table where the given field ends with the given value
+   * @param tablename The name of the table to get the entry from
+   * @param fieldname The name of the field to compare the given value with
+   * @param value The value to compare the given field with
+   * @generic <T> the type of the entry - must be the same as what is returned by the parseFunction - defaults to TEntry
+   * @returns The sole entry from the given table where the given field ends with the given value
+   * @throws Error if the table does not exist
+   * @throws Error if the database is not connected
+   * @throws Error if there is not exactly one entry that passes the given filter
+   */
+  public static get_unique_where_ends_with<T = TEntry>(tablename: string, fieldname: fieldname, value: string): T {
+    const table = this.get_table(tablename);
+    return table.get_unique_where_ends_with<T>(fieldname, value);
   }
 
   /// *** FILTER-QUERY PATCH METHODS *** ///
 
   /**
-   * Update all entries from the table with the given tablename
+   * Update all entries from the given table
    * @param tablename The name of the table to update the entries in
    * @param updated_fields The fields to update
    * @warning be careful using this method
@@ -927,7 +1307,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename that pass the filter
+   * Update all entries from the given table that pass the filter
    * @param tablename The name of the table to update the entries in
    * @param filter The filter to apply to the entries
    * @param updated_fields The updated fields to apply to the entries
@@ -940,7 +1320,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is equal to the given value
+   * Update all entries from the given table where the given field is equal to the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -954,7 +1334,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is not equal to the given value
+   * Update all entries from the given table where the given field is not equal to the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -968,7 +1348,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is greater than the given value
+   * Update all entries from the given table where the given field is greater than the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -982,7 +1362,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is less than the given value
+   * Update all entries from the given table where the given field is less than the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -996,7 +1376,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is greater than or equal to the given value
+   * Update all entries from the given table where the given field is greater than or equal to the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1010,7 +1390,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name is less than or equal to the given value
+   * Update all entries from the given table where the given field is less than or equal to the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1024,7 +1404,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name contains the given value
+   * Update all entries from the given table where the given field contains the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1038,7 +1418,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name does not contain the given value
+   * Update all entries from the given table where the given field does not contain the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1052,7 +1432,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name starts with the given value
+   * Update all entries from the given table where the given field starts with the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1066,7 +1446,7 @@ export default class Database {
   }
 
   /**
-   * Update all entries from the table with the given tablename where the field with the given name ends with the given value
+   * Update all entries from the given table where the given field ends with the given value
    * @param tablename The name of the table to update the entries in
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1082,7 +1462,7 @@ export default class Database {
   /// *** FILTER-QUERY DELETE METHODS *** ///
 
   /**
-   * Delete all entries from the table with the given tablename
+   * Delete all entries from the given table
    * @param tablename The name of the table to delete the entries from
    * @warning be careful using this method 
    * @throws Error if the table does not exist
@@ -1094,7 +1474,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename that pass the given filter
+   * Delete all entries from the given table that pass the given filter
    * @param tablename The name of the table to delete the entries from
    * @param filter The filter to apply to the table
    */
@@ -1104,7 +1484,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is equal to the given value
+   * Delete all entries from the given table where the given field is equal to the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1117,7 +1497,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is not equal to the given value
+   * Delete all entries from the given table where the given field is not equal to the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1130,7 +1510,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is greater than the given value
+   * Delete all entries from the given table where the given field is greater than the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1143,7 +1523,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is greater than or equal to the given value
+   * Delete all entries from the given table where the given field is greater than or equal to the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1156,7 +1536,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is less than the given value
+   * Delete all entries from the given table where the given field is less than the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1169,7 +1549,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name is less than or equal to the given value
+   * Delete all entries from the given table where the given field is less than or equal to the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1182,7 +1562,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name contains the given value
+   * Delete all entries from the given table where the given field contains the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1195,7 +1575,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name does not contain the given value
+   * Delete all entries from the given table where the given field does not contain the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1208,7 +1588,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name starts with the given value
+   * Delete all entries from the given table where the given field starts with the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
@@ -1221,7 +1601,7 @@ export default class Database {
   }
 
   /**
-   * Delete all entries from the table with the given tablename where the field with the given name ends with the given value
+   * Delete all entries from the given table where the given field ends with the given value
    * @param tablename The name of the table to delete the entries from
    * @param fieldname The name of the field to compare the given value with
    * @param value The value to compare the given field with
