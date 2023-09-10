@@ -76,7 +76,7 @@ app.post("/login", jsonParser, (req: any, res: any) => {
     return res.status(400).send("Email or password not provided");
   }
 
-  const user = Database.get_where("Users", "email", email)[0];
+  const user = Database.get_unique_where("Users", "email", email);
   if (user == undefined) return res.status(400).send(`User with email "${email}" does not exist`);
   if (user.password != password) return res.status(400).send("Password invalid");
   
@@ -96,7 +96,7 @@ app.post("/register", jsonParser, (req: any, res: any) => {
     return res.status(400).send("Name, email, or password not provided");
   }
 
-  const user = Database.get_where("Users", "email", email)[0];
+  const user = Database.get_unique_where("Users", "email", email);
   if (user != undefined) return res.status(400).send({ error: `User with email "${email}" already exists` });
 
   Database.post("Users", {
