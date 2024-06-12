@@ -5,4 +5,5 @@ export default interface IUser {
   username: string; // 16 chars max
   email: string; // 150 chars max
   password: string; // TEXT
+  imageURL: string; // TEXT
 }
