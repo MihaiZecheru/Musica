@@ -1,6 +1,8 @@
 import './index.css';
 import logo from './musica.png';
 
+import "./mdbootstrap/css/mdb.min.css"
+
 function App() {
   return (
     <>
