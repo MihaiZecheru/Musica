@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
-import React from "react";
+import { supabase } from "../config/supabase";
 
 const Register = () => {
   useEffect(() => {
@@ -43,16 +43,27 @@ const Register = () => {
         });
         return;
       }
-
-      fetch(`http://localhost:5000/api/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, email, password, imageURL: `https://ui-avatars.com/api/?name=${name}` })
-      }).then(() => {
-        window.location.href = '/login';
-      })
+      // TODO: FIX THIS !!
+      (async () => {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password
+        });
+  
+        const { data: data1, error: error1 } = await supabase
+          .from('users')
+          .insert([{ username: name, imageURL: `https://ui-avatars.com/api/?name=${name}` }]);
+  
+        if (error || error1) {
+          const modal = document.getElementById('registration-error-modal') as HTMLElement;
+          new Modal(modal).show();
+          modal.addEventListener('hidden.bs.modal', () => {
+            document.querySelector(".modal-backdrop")?.remove();
+          });
+        } else {
+          window.location.href = '/login';
+        }
+      })();
     });
   }, []);
   
@@ -162,6 +173,21 @@ const Register = () => {
             <button type="button" className="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
           </div>
           <div className="modal-body">Your email is invalid</div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-danger" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="modal fade" id="registration-error-modal" tabIndex={ -1 } aria-labelledby="registration-error-modalLabel" aria-hidden="true">
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title" id="registration-error-modalLabel">Registration Failed</h5>
+            <button type="button" className="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div className="modal-body">There was an error while trying to register you to Musica</div>
           <div className="modal-footer">
             <button type="button" className="btn btn-danger" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
           </div>
