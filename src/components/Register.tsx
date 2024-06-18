@@ -44,23 +44,36 @@ const Register = () => {
         return;
       }
       // TODO: FIX THIS !!
+      let userID, error1;
       (async () => {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password
-        });
-  
-        const { data: data1, error: error1 } = await supabase
-          .from('users')
-          .insert([{ username: name, imageURL: `https://ui-avatars.com/api/?name=${name}` }]);
-  
-        if (error || error1) {
+        // Parenthesis for scoping to prevent name error as 'data' and 'error' are used twice
+        {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password
+          });
+
+          userID = data?.user?.id;
+          error1 = error;
+        }
+
+        const { error } = await supabase
+          .from('UserInfo')
+          .insert([{
+            id: userID,
+            username: name,
+            imageURL: `https://ui-avatars.com/api/?name=${name}`
+          }]);
+
+          if (error1?.message || error?.message) {
           const modal = document.getElementById('registration-error-modal') as HTMLElement;
+          (modal.querySelector('.modal-body') as HTMLElement).textContent = error1?.message ? error1!.message : error!.message;
           new Modal(modal).show();
           modal.addEventListener('hidden.bs.modal', () => {
             document.querySelector(".modal-backdrop")?.remove();
           });
         } else {
+          // Successful sign-u
           window.location.href = '/login';
         }
       })();
