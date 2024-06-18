@@ -43,7 +43,7 @@ const Register = () => {
         });
         return;
       }
-      // TODO: FIX THIS !!
+
       let userID, error1;
       (async () => {
         // Parenthesis for scoping to prevent name error as 'data' and 'error' are used twice
@@ -64,8 +64,9 @@ const Register = () => {
             username: name,
             imageURL: `https://ui-avatars.com/api/?name=${name}`
           }]);
-
-          if (error1?.message || error?.message) {
+        if (error1?.message || error?.message) {
+          const skipMsg = `Database error saving new user null value in column "id" of relation "UserInfo" violates not-null constraint`;
+          if (error1?.message == skipMsg || error?.message == skipMsg) return;
           const modal = document.getElementById('registration-error-modal') as HTMLElement;
           (modal.querySelector('.modal-body') as HTMLElement).textContent = error1?.message ? error1!.message : error!.message;
           new Modal(modal).show();
@@ -81,7 +82,7 @@ const Register = () => {
   }, []);
   
   return (
-  <>
+  <div id="register-page">
     <section className="vh-100" style={{ "backgroundColor": "#eee" }}>
       <div className="container h-100">
         <div className="row d-flex justify-content-center align-items-center h-100">
@@ -207,7 +208,7 @@ const Register = () => {
         </div>
       </div>
     </div>
-  </>
+  </div>
   );
 }
  
