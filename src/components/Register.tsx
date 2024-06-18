@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import { supabase } from "../config/supabase";
 
@@ -183,7 +183,7 @@ const Register = () => {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="invalid-password-modalLabel">Invalid Email</h5>
+            <h5 className="modal-title" id="invalid-email-modalLabel">Invalid Email</h5>
             <button type="button" className="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
           </div>
           <div className="modal-body">Your email is invalid</div>
