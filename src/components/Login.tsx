@@ -55,7 +55,7 @@ const Login = () => {
   }, []);
   
   return (
-    <>
+    <div id="login-page">
       <section className="vh-100">
         <div className="container py-5 h-100">
           <div className="row d-flex align-items-center justify-content-center h-100">
@@ -77,7 +77,7 @@ const Login = () => {
 
                 <div className="d-flex justify-content-around align-items-center mb-4">
                   <div>
-                    <span>New to Musica?</span><a href="/register"> Register</a>
+                    <span>New to Musica?</span><a href="/register"> Register now</a>
                   </div>
                   <a href="#" role="button" id="forgot-password-btn">Forgot password?</a>
                 </div>
@@ -156,7 +156,7 @@ const Login = () => {
         </div>
       </div>
 
-    </>
+    </div>
   );
 }
  

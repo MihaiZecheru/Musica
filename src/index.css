@@ -16,3 +16,10 @@ body {
   background-color: var(--musica-gray);
   color: var(--musica-blue);
 }
+
+#register-page,
+#login-page {
+  position: absolute;
+  top: 0;
+  width: 100vw;
+}

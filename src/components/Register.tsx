@@ -128,6 +128,11 @@ const Register = () => {
                         </div>
                       </div>
 
+                      <div className="mb-4">
+                        <span>Already have an account? </span><a href="/login">Go to login</a>
+                        
+                      </div>
+
                       <div className="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
                         <button id="registerBtn" type="button" data-mdb-button-init data-mdb-ripple-init className="btn btn-primary btn-lg">Register</button>
                       </div>

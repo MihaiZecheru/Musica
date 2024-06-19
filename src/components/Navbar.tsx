@@ -6,7 +6,7 @@ const Navbar = () => {
 
   return (
     <div id="navbar">      
-      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary" style={{ "position": "absolute", "width": "100vw" }}>
+      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <a className="navbar-brand mt-2 mt-lg-0" href="#">
