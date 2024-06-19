@@ -1,6 +1,6 @@
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import { useEffect } from 'react';
-import { supabase } from '../config/supabase';
+import supabase from '../config/supabase';
 
 const Login = () => {
   useEffect(() => {
