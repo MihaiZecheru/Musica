@@ -1,9 +1,18 @@
 import { useEffect } from "react";
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
+import axios from 'axios';
 
 const Search = () => {
   useEffect(() => {
     initMDB({ Input });
+
+    document.getElementById("searchbox")?.addEventListener("keyup", (e: Event) => {
+      // @ts-ignore
+      if (e.key === "Enter") {
+        const searchValue = (e.target as HTMLInputElement).value;
+
+      }
+    });
   }, []);
   
   return (
