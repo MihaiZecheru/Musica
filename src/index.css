@@ -39,3 +39,69 @@ body {
   border-radius: 3px;
   z-index: 1;
 }
+
+.card-spc {
+  width: 22rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin: 16px;
+}
+
+.card-title-spc {
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.card-subtitle-spc {
+  font-size: 0.9rem;
+  color: #999;
+  margin-bottom: 1rem;
+}
+
+.card-artists-spc {
+  font-size: 1rem;
+  margin-bottom: .5rem;
+}
+
+.card-link-spc {
+  display: inline-block;
+  color: var(--musica-blue-dark);
+  text-decoration: none;
+}
+
+.card-link-spc:hover {
+  text-decoration: underline;
+}
+
+.audio-spc {
+  width: 100%;
+}
+
+.btn-spc {
+  background-color: var(--musica-blue-dark)!important;
+  color: white!important;
+  border-radius: .25rem;
+  width: 100%;
+}
+
+#results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  place-items: center;
+}
+
+@media (max-width: 768px) {
+  #results {
+    grid-template-columns: repeat(2, 1fr); /* Two columns on smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  #results {
+    grid-template-columns: 1fr; /* One column on very small screens */
+  }
+}
