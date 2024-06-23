@@ -66,7 +66,7 @@ const Register = () => {
           }]);
         if (error1?.message || error?.message) {
           const skipMsg = `Database error saving new user null value in column "id" of relation "UserInfo" violates not-null constraint`;
-          if (error1?.message == skipMsg || error?.message == skipMsg) return;
+          if (error1?.message === skipMsg || error?.message === skipMsg) return;
           const modal = document.getElementById('registration-error-modal') as HTMLElement;
           (modal.querySelector('.modal-body') as HTMLElement).textContent = error1?.message ? error1!.message : error!.message;
           new Modal(modal).show();
