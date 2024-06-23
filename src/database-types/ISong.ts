@@ -4,7 +4,7 @@ export default interface ISong {
   id: SongID;
   videoURL: string;
   title: string;
-  artist: string;
+  artists: string;
   year: number; // 4-digit year
   duration: number; // in seconds
   imageURL: string;
