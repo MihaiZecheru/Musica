@@ -6,6 +6,21 @@ import { useNavigate } from 'react-router-dom';
 const Login = () => {
   const navigate = useNavigate();
 
+  const loginWithProvider = async (provider: 'github' | 'google') => {
+    const { data, error } = await supabase.auth.signInWithOAuth({ provider });
+    
+    if (error) {
+      console.error(error.message);
+      throw error;
+    }
+  
+    // TODO: redirect. figure this out
+    // if (data?.user) {
+    //   // Successful login
+    //   navigate("/home");
+    // }
+  }
+
   useEffect(() => {
     initMDB({ Input });
 
@@ -93,14 +108,12 @@ const Login = () => {
                   <div className="border-top border-secondary mx-3 flex-grow-1"></div>
                 </div>
 
-                <a data-mdb-ripple-init className="btn btn-primary btn-lg btn-block" style={{ "backgroundColor": "#4285F4" }} href="#!"
-                  role="button">
+                <button data-mdb-ripple-init className="btn btn-primary btn-lg btn-block" style={{ "backgroundColor": "#4285F4" }} onClick={ () => { loginWithProvider('google') }}>
                     <i className="fab fa-google"></i><span> Continue with Google</span>
-                </a>
-                <a data-mdb-ripple-init className="btn btn-primary btn-lg btn-block" style={{ "backgroundColor": "#1d1a1a" }} href="#!"
-                  role="button">
+                </button>
+                <button data-mdb-ripple-init className="btn btn-primary btn-lg btn-block" style={{ "backgroundColor": "#1d1a1a" }} onClick={ () => { loginWithProvider('github') }}>
                   <i className="fab fa-github"></i><span> Continue with GitHub</span>
-                </a>
+                </button>
               </form>
             </div>
           </div>
