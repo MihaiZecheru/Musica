@@ -1,8 +1,11 @@
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import { useEffect } from 'react';
 import supabase from '../config/supabase';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     initMDB({ Input });
 
@@ -36,7 +39,7 @@ const Login = () => {
         });
       } else {
         // Successful login
-        window.location.href = '/dashboard';
+        navigate("/home");
       }
     });
 

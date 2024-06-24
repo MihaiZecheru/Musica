@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import supabase from "../config/supabase";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     initMDB({ Input });
 
@@ -75,7 +78,7 @@ const Register = () => {
           });
         } else {
           // Successful sign-u
-          window.location.href = '/login';
+          navigate('/login');
         }
       })();
     });
