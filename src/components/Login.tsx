@@ -33,10 +33,9 @@ const Login = () => {
       e.preventDefault();
       const email = emailBox.value;
       const password = passwordBox.value;
-      const emailRegex = new RegExp(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
       let { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (!emailRegex.test(email) || error?.message === 'Invalid login credentials') {
+      if (error?.message === 'Invalid login credentials') {
         const modal = document.getElementById('invalid-login-modal') as HTMLElement;
         new Modal(modal).show();
         modal.addEventListener('hidden.bs.modal', () => {
