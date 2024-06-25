@@ -13,16 +13,16 @@ const Login = () => {
       console.error(error.message);
       throw error;
     }
-  
-    // TODO: redirect. figure this out
-    // if (data?.user) {
-    //   // Successful login
-    //   navigate("/home");
-    // }
   }
 
   useEffect(() => {
     initMDB({ Input });
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        navigate("/home");
+      }
+    });
 
     const emailBox = document.getElementById('email-box') as HTMLInputElement;
     const passwordBox = document.getElementById('password-box') as HTMLInputElement;
@@ -51,9 +51,6 @@ const Login = () => {
         modal.addEventListener('hidden.bs.modal', () => {
           document.querySelector(".modal-backdrop")?.remove();
         });
-      } else {
-        // Successful login
-        navigate("/home");
       }
     });
 
@@ -67,6 +64,7 @@ const Login = () => {
       document.getElementById("send-email-btn")?.addEventListener('click', async () => {
         const email = (modal.querySelector('input') as HTMLInputElement).value;
         let { data, error } = await supabase.auth.resetPasswordForEmail(email);
+        // TODO: in supabase configure the email
       });
     });
   }, [navigate]);
