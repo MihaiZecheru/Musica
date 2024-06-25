@@ -67,6 +67,7 @@ const Register = () => {
             username: name,
             imageURL: `https://ui-avatars.com/api/?name=${name}`
           }]);
+
         if (error1?.message || error?.message) {
           const skipMsg = `Database error saving new user null value in column "id" of relation "UserInfo" violates not-null constraint`;
           if (error1?.message === skipMsg || error?.message === skipMsg) return;
@@ -77,7 +78,7 @@ const Register = () => {
             document.querySelector(".modal-backdrop")?.remove();
           });
         } else {
-          // Successful sign-u
+          // Successful sign-up
           navigate('/login');
         }
       })();
