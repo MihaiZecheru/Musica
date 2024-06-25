@@ -4,7 +4,6 @@ import { YoutubeAPIVideo, searchYoutubeForMatchingVideo } from "./youtubeService
 
 function convertDurationToSeconds(duration: string): number {
   const [minutes, seconds] = duration.split(':').map(Number);
-  console.log(duration, minutes, seconds);
   return minutes * 60 + seconds;
 }
 
