@@ -33,7 +33,7 @@ const Login = () => {
       e.preventDefault();
       const email = emailBox.value;
       const password = passwordBox.value;
-      let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      let { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error?.message === 'Invalid login credentials') {
         const modal = document.getElementById('invalid-login-modal') as HTMLElement;
@@ -69,7 +69,7 @@ const Login = () => {
         let { data, error } = await supabase.auth.resetPasswordForEmail(email);
       });
     });
-  }, []);
+  }, [navigate]);
   
   return (
     <div id="login-page">

@@ -82,7 +82,7 @@ const Register = () => {
         }
       })();
     });
-  }, []);
+  }, [navigate]);
   
   return (
   <div id="register-page">
