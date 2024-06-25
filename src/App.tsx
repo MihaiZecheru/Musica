@@ -22,9 +22,9 @@ function App() {
           <Route path="/login" element={ <Login /> } />
           <Route path="/register" element={ <Register /> } />
           { /* Authenticated routes */}
+          <Route path="/home" element={ <Authenticator component={<Home />} /> } />
           <Route path="/search" element={ <Authenticator component={<Search/>} /> } />
           <Route path="/queue" element={ <Authenticator component={<Queue />} /> } />
-          <Route path="/home" element={ <Authenticator component={<Home />} /> } />
         </Routes>
       </div>
     </Router>
