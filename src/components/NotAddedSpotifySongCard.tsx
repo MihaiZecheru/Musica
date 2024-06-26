@@ -1,9 +1,12 @@
 import { MouseEventHandler, useEffect, useState } from 'react';
-import AddSongToMusica from '../functions/AddSongToMusica';
 import { SpotifyAPISong } from "../functions/spotifyService";
-import { initMDB, Dropdown, Ripple } from 'mdb-ui-kit';
 
-const NotAddedSpotifySongCard = ( { song, onAdd }: { song: SpotifyAPISong, onAdd: MouseEventHandler }) => {
+interface Props {
+  song: SpotifyAPISong;
+  onAdd: MouseEventHandler;
+}
+
+const NotAddedSpotifySongCard = ({ song, onAdd }: Props) => {
   // TODO: make the color alternate between cards, pink then blue, using the index. even index is blue odd is pink
   return (
     <div className="card-spc d-flex justify-content-center">

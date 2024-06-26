@@ -1,9 +1,14 @@
 import { MouseEventHandler, useEffect, useState } from 'react';
-import AddSongToMusica from '../functions/AddSongToMusica';
 import { SpotifyAPISong } from "../functions/spotifyService";
 import { initMDB, Dropdown, Ripple } from 'mdb-ui-kit';
 
-const AddedSpotifySongCard = ( { song, songIsLiked, onSongLikeToggle }: { song: SpotifyAPISong, songIsLiked: boolean, onSongLikeToggle: MouseEventHandler }) => {
+interface Props {
+  song: SpotifyAPISong,
+  songIsLiked: boolean,
+  onSongLikeToggle: MouseEventHandler
+}
+
+const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle }: Props) => {
   useEffect(() => {
     initMDB({ Dropdown, Ripple });
   }, []);
@@ -51,11 +56,11 @@ const AddedSpotifySongCard = ( { song, songIsLiked, onSongLikeToggle }: { song: 
             <i className="fas fa-bars fa-lg"></i>
           </button>
           <ul className="dropdown-menu">
-            <li><a className="dropdown-item" href="#"><i className="fas fa-plus"></i> Add to playlist</a></li>
+            <li><a className="dropdown-item" role="button"><i className="fas fa-plus"></i> Add to playlist</a></li>
             <li><a className="dropdown-item" role="button" onClick={ onSongLikeToggle }> { songIsLiked ? <div><i className="fas fa-heart"></i><span> Remove liked song</span></div> : <div><i className="far fa-heart"></i><span> Like song</span></div> }</a></li>
-            <li><a className="dropdown-item" href="#">Something else here</a></li>
+            <li><a className="dropdown-item" role="button"><i className="fas fa-music"></i><span> Add to queue</span></a></li>
             <li><hr className="dropdown-divider" /></li>
-            <li><a className="dropdown-item" href="#">Separated link</a></li>
+            <li><a className="dropdown-item" role="button"><i className="fas fa-arrow-up-from-bracket"></i><span> Share</span></a></li>
           </ul>
         </div>
       </div>
