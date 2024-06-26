@@ -68,7 +68,14 @@ const Register = () => {
             imageURL: `https://ui-avatars.com/api/?name=${name}`
           }]);
 
-        if (error1?.message || error?.message) {
+        const { error: error2 } = await supabase
+          .from('LikedSongs')
+          .insert([{
+            userID,
+            songs: []
+          }]);
+
+        if (error1?.message || error?.message || error2?.message) {
           const skipMsg = `Database error saving new user null value in column "id" of relation "UserInfo" violates not-null constraint`;
           if (error1?.message === skipMsg || error?.message === skipMsg) return;
           const modal = document.getElementById('registration-error-modal') as HTMLElement;
