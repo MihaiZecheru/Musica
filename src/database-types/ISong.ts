@@ -1,4 +1,4 @@
-import { SongID } from "./ID";
+import { SongID, SpotifySongID } from "./ID";
 
 export default interface ISong {
   id: SongID;
@@ -8,5 +8,5 @@ export default interface ISong {
   year: number; // 4-digit year
   duration: number; // in seconds
   imageURL: string;
-  spotifySongID: string;
+  spotifySongID: SpotifySongID;
 }
