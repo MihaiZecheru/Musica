@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import { SpotifySongID } from '../database-types/ID';
 
 const CLIENT_ID = '64298f7a2f344d86b9368930e6683cf3';
 const CLIENT_SECRET = '218dfd4ac44e41148fd94b54d58e5a3b';
@@ -13,7 +14,7 @@ export interface SpotifyAPISong {
   external_urls: { spotify: string }
   name: string;
   preview_url: string;
-  id: string;
+  id: SpotifySongID;
 }
 
 async function getAccessToken(): Promise<string> {
