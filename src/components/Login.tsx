@@ -18,10 +18,8 @@ const Login = () => {
   useEffect(() => {
     initMDB({ Input });
 
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        navigate("/home");
-      }
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') navigate("/home");
     });
 
     const emailBox = document.getElementById('email-box') as HTMLInputElement;
@@ -67,6 +65,10 @@ const Login = () => {
         // TODO: in supabase configure the email
       });
     });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    }
   }, [navigate]);
   
   return (
