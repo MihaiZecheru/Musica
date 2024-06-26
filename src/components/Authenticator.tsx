@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../config/supabase';
 import { useNavigate } from 'react-router-dom';
+import GetUser from '../functions/GetUser';
 
 const Authenticator = ({ component }: { component: React.ReactNode}) => {
   const [user, setUser] = useState<any>(null);
@@ -8,15 +9,10 @@ const Authenticator = ({ component }: { component: React.ReactNode}) => {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.auth.getUser();
-      
-      if (error) {
-        console.error(error.message);
-        throw error;
-      }
+      const user = await GetUser();
 
-      if (!data.user) navigate('/login');
-      else setUser(data.user);
+      if (!user) navigate('/login');
+      else setUser(user);
     })();
   }, [navigate]);
 
