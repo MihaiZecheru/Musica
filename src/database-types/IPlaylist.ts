@@ -9,5 +9,5 @@ export default interface IPlaylist {
   title: string;
   description: string;
   imageURL: string;
-  songs: Array<IPlaylistSong>;
+  songs: IPlaylistSong[];
 }

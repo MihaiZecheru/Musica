@@ -37,7 +37,7 @@ async function getAccessToken(): Promise<string> {
   return (await response.json()).access_token;
 }
 
-export async function searchSongs(query: string): Promise<Array<SpotifyAPISong>> {
+export async function searchSongs(query: string): Promise<SpotifyAPISong[]> {
   const accessToken = await getAccessToken();
   const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=21`;
 

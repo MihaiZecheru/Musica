@@ -7,5 +7,5 @@ export type TLikedSongData = {
 
 export default interface ILikedSong {
   userID: UserID;
-  songs: Array<TLikedSongData>;
+  songs: TLikedSongData[];
 }

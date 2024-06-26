@@ -9,7 +9,7 @@ import AddedSpotifySongCard from "./AddedSpotifySongCard";
 import AddSongToMusica from "../functions/AddSongToMusica";
 import { TLikedSongData } from "../database-types/ILikedSong";
 
-const getExistingMusicaSongIDs = async (): Promise<Array<SpotifySongID>> => {
+const getExistingMusicaSongIDs = async (): Promise<SpotifySongID[]> => {
   const { data, error } = await supabase
     .from('Songs')
     .select('spotifySongID');
@@ -22,7 +22,7 @@ const getExistingMusicaSongIDs = async (): Promise<Array<SpotifySongID>> => {
   return data.map((song: { spotifySongID: SpotifySongID }) => song.spotifySongID);
 }
 
-function getAddedStatus(spotifySongID: string, existingMusicaSongIDs: Array<string>): "added" | "not-added" {
+function getAddedStatus(spotifySongID: string, existingMusicaSongIDs: string[]): "added" | "not-added" {
   return existingMusicaSongIDs.includes(spotifySongID) ? "added" : "not-added";
 }
 
@@ -32,7 +32,7 @@ function removeAllEventListeners(element: HTMLElement) {
   return newElement;
 }
 
-async function getLikedSongs(): Promise<Array<TLikedSongData>> {
+async function getLikedSongs(): Promise<TLikedSongData[]> {
   const user = await GetUser();
   
   const { data, error } = await supabase
@@ -45,14 +45,14 @@ async function getLikedSongs(): Promise<Array<TLikedSongData>> {
     throw error;
   }
 
-  return (data as Array<{ songs: Array<TLikedSongData> }>)[0].songs;
+  return (data as Array<{ songs: TLikedSongData[] }>)[0].songs;
 }
 
 const Search = () => {
-  const [searchResults, setSearchResults] = useState<Array<SpotifyAPISong>>([]);
+  const [searchResults, setSearchResults] = useState<SpotifyAPISong[]>([]);
   const [search_count, setSearchCount] = useState<number>(0); // the amount of times a search has been made
-  const [existingMusicaSongIDs, setExistingMusicaSongIDs] = useState<Array<string>>([]);
-  const [likedSongs, setLikedSongs] = useState<Array<TLikedSongData>>([]);
+  const [existingMusicaSongIDs, setExistingMusicaSongIDs] = useState<string[]>([]);
+  const [likedSongs, setLikedSongs] = useState<TLikedSongData[]>([]);
   const [spotifyIDToSongIDMap, setSpotifyIDToSongIDMap] = useState<{ [spotifyID: SpotifySongID]: SongID }>({});
 
   useEffect(() => {
@@ -83,7 +83,7 @@ const Search = () => {
     const songID = spotifyIDToSongIDMap[songSpotifyID];
     const isLiked = likedSongs.some((likedSong: TLikedSongData) => likedSong.songID === songID);
     
-    let newLikedSongs: Array<TLikedSongData>;
+    let newLikedSongs: TLikedSongData[];
     if (isLiked) {
       // Unlike the song
       newLikedSongs = likedSongs.filter((song: TLikedSongData) => song.songID !== songID);
