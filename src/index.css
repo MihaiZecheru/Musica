@@ -105,3 +105,33 @@ body {
     grid-template-columns: 1fr; /* One column on very small screens */
   }
 }
+
+.btn-spc-dropdown {
+  background-color: var(--musica-blue-dark)!important;
+  color: white!important;
+}
+
+.btn-spc-dropdown:hover {
+  background-color: var(--musica-blue-light)!important;
+}
+
+/* Remove default dropdown arrow */
+.btn-spc-dropdown::after {
+  display: none!important;
+}
+
+.btn-added {
+  cursor: default!important;
+}
+
+.btn-not-added {
+  cursor: pointer!important;
+}
+
+.no-drag {
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
