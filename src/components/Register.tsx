@@ -69,10 +69,11 @@ const Register = () => {
           }]);
 
         const { error: error2 } = await supabase
-          .from('LikedSongs')
+          .from('LikedSongsAndQueue')
           .insert([{
             userID,
-            songs: []
+            likedSongs: [],
+            songQueue: []
           }]);
 
         if (error1?.message || error?.message || error2?.message) {
