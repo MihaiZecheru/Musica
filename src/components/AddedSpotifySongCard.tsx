@@ -1,17 +1,22 @@
 import { MouseEventHandler, useEffect, useState } from 'react';
 import { SpotifyAPISong } from "../functions/spotifyService";
 import { initMDB, Dropdown, Ripple } from 'mdb-ui-kit';
+import { SongID } from '../database-types/ID';
+import IPlaylistReduced from '../database-types/IPlaylistReduced';
 
 interface Props {
   song: SpotifyAPISong,
+  musicaSongID: SongID,
   songIsLiked: boolean,
   onSongLikeToggle: MouseEventHandler,
   songInQueue: boolean,
   onInQueueToggle: MouseEventHandler,
-  onCopyShareLink: MouseEventHandler
+  onCopyShareLink: MouseEventHandler,
+  playlists: IPlaylistReduced[],
+  updateSongInPlaylist: Function
 }
 
-const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle, songInQueue, onInQueueToggle, onCopyShareLink }: Props) => {
+const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle, songInQueue, onInQueueToggle, onCopyShareLink, musicaSongID, playlists, updateSongInPlaylist }: Props) => {
   useEffect(() => {
     initMDB({ Dropdown, Ripple });
   }, []);
@@ -43,7 +48,7 @@ const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle, songInQueue
           </audio>
         }
         {/* Do nothing on btn click since the song is already added */}
-        <div className="btn-group w-100">
+        <div className="btn-group w-100 no-drag">
           <button className="btn btn-spc btn-added">
             <i className="fas fa-check fa-lg"></i><span> Added to Musica</span>
           </button>
@@ -59,11 +64,68 @@ const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle, songInQueue
             <i className="fas fa-bars fa-lg"></i>
           </button>
           <ul className="dropdown-menu">
-            <li><a className="dropdown-item" role="button"><i className="fas fa-plus"></i> Add to playlist</a></li>
-            <li><a className="dropdown-item" role="button" onClick={ onSongLikeToggle }> { songIsLiked ? <div><i className="fas fa-heart"></i><span> Remove liked song</span></div> : <div><i className="far fa-heart"></i><span> Like song</span></div> }</a></li>
-            <li><a className="dropdown-item" role="button" onClick={ onInQueueToggle }>{ songInQueue ? <div><i className="fas fa-square-plus"></i><span> Remove from queue</span></div> : <div><i className="far fa-square-plus"></i><span> Add to queue</span></div> }</a></li>
+            <li>
+              <a className="dropdown-item d-flex justify-content-between align-items-center" role="button">
+                <div className="i-span">
+                  <i className="fas fa-plus fa-lg"></i>
+                  <span> Add to playlist</span>
+                </div>
+                <i className="fas fa-angle-right"></i>
+              </a>
+              <ul className="dropdown-menu dropdown-submenu">
+                {
+                  playlists.map((playlist: IPlaylistReduced) => {
+                    const songInPlaylist = playlist.songs.some((song) => song.songID === musicaSongID);
+                    return (
+                      <li key={ playlist.id }>
+                        <a className="dropdown-item"
+                           role="button"
+                           onClick={ () => { updateSongInPlaylist(playlist.id, musicaSongID) } }>
+                          <div className="i-span">
+                            {
+                              songInPlaylist ?
+                              <i className="fas fa-circle-check fa-lg"></i> :
+                              <i className="far fa-circle fa-lg"></i>
+                            }
+                            <span> { playlist.title }</span>
+                          </div>
+                        </a>
+                      </li>
+                    )
+                  })
+                }
+              </ul>
+            </li>
+            <li>
+              <a className="dropdown-item"
+                 role="button"
+                 onClick={ onSongLikeToggle }>
+                {
+                  songIsLiked ?
+                  <div className="i-span"><i className="fas fa-heart fa-lg"></i><span> Remove liked song</span></div> :
+                  <div className="i-span"><i className="far fa-heart fa-lg"></i><span> Like song</span></div>
+                }
+              </a>
+            </li>
+            <li>
+              <a className="dropdown-item"
+                 role="button"
+                 onClick={ onInQueueToggle }>
+                {
+                  songInQueue ?
+                  <div className="i-span"><i className="fas fa-square-plus fa-lg"></i><span> Remove from queue</span></div> :
+                  <div className="i-span"><i className="far fa-square-plus fa-lg"></i><span> Add to queue</span></div>
+                }
+              </a>
+            </li>
             <li><hr className="dropdown-divider" /></li>
-            <li><a className="dropdown-item" role="button" onClick={ onCopyShareLink }><i className="fas fa-share"></i><span> Copy share link</span></a></li>
+            <li>
+              <a className="dropdown-item"
+                 role="button"
+                 onClick={ onCopyShareLink }>
+                <div className="i-span"><i className="fas fa-share fa-lg"></i><span> Copy share link</span></div>
+              </a>
+            </li>
           </ul>
         </div>
       </div>

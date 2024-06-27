@@ -9,6 +9,8 @@ import AddedSpotifySongCard from "./AddedSpotifySongCard";
 import AddSongToMusica from "../functions/AddSongToMusica";
 import { TLikedSongData } from "../database-types/ILikedSong";
 import IPlaylistSong from "../database-types/IPlaylistSong";
+import IPlaylist from "../database-types/IPlaylist";
+import IPlaylistReduced from "../database-types/IPlaylistReduced";
 
 const getExistingMusicaSongIDs = async (): Promise<SpotifySongID[]> => {
   const { data, error } = await supabase
@@ -51,27 +53,44 @@ async function getLikedSongsAndQueue(): Promise<{ likedSongs: TLikedSongData[], 
   return { likedSongs, songQueue };
 }
 
+async function getPlaylists(userID: UserID): Promise<IPlaylistReduced[]> {
+  const { data, error } = await supabase
+    .from('Playlists')
+    .select('id,title,songs')
+    .eq('creatorID', userID);
+
+  if (error) {
+    console.error('Error retrieving playlists: ', error);
+    throw error;
+  }
+
+  return data as IPlaylistReduced[];
+}
+
 const Search = () => {
   const [userID, setUserID] = useState<UserID | null>(null);
   const [searchResults, setSearchResults] = useState<SpotifyAPISong[]>([]);
-  const [search_count, setSearchCount] = useState<number>(0); // the amount of times a search has been made
+  const [searchCount, setSearchCount] = useState<number>(0); // the amount of times a search has been made
   const [existingMusicaSongIDs, setExistingMusicaSongIDs] = useState<string[]>([]);
   const [likedSongs, setLikedSongs] = useState<TLikedSongData[]>([]);
   const [songsInQueue, setSongsInQueue] = useState<SongID[]>([]);
   const [spotifyIDToSongIDMap, setSpotifyIDToSongIDMap] = useState<{ [spotifyID: SpotifySongID]: SongID }>({});
+  const [playlists, setPlaylists] = useState<IPlaylistReduced[]>([]);
 
   useEffect(() => {
-    initMDB({ Input });
+    const initializeData = async () => {
+      initMDB({ Input });
 
-    GetUser().then(user => setUserID(user.id as UserID));
-    getExistingMusicaSongIDs().then((songIDs) => setExistingMusicaSongIDs(songIDs));
-    
-    getLikedSongsAndQueue().then((data) => {
-      setLikedSongs(data.likedSongs);
-      setSongsInQueue(data.songQueue);
-    });
+      const user = await GetUser();
+      setUserID(user.id as UserID);
 
-    (async () => {
+      const musicaSongIDs = await getExistingMusicaSongIDs();
+      setExistingMusicaSongIDs(musicaSongIDs);
+
+      const likedSongsAndQueue = await getLikedSongsAndQueue();
+      setLikedSongs(likedSongsAndQueue.likedSongs);
+      setSongsInQueue(likedSongsAndQueue.songQueue);
+
       const { data, error } = await supabase
         .from('Songs')
         .select('id,spotifySongID');
@@ -85,10 +104,20 @@ const Search = () => {
       for (let i = 0; i < data.length; i++) {
         map[data[i].spotifySongID] = data[i].id;
       }
-
       setSpotifyIDToSongIDMap(map);
-    })();
+    };
+
+    initializeData();
   }, []);
+
+  useEffect(() => {
+    if (userID) {
+      (async () => {
+        const userPlaylists = await getPlaylists(userID);
+        setPlaylists(userPlaylists);
+      })();
+    }
+  }, [userID]);
 
   const toggleSongLikeStatus = async (songID: SongID, userID: UserID) => {
     const isLiked = likedSongs.some((likedSong: TLikedSongData) => likedSong.songID === songID);
@@ -186,13 +215,56 @@ const Search = () => {
       const s = (e.target as HTMLInputElement).value.trim();
       if (s.length === 0) return;
       setSearchResults(await searchSongs(s));
-      setSearchCount(search_count + 1);
+      setSearchCount(searchCount + 1);
     }
   }
 
   const onAdd = (song: SpotifyAPISong) => {
     setExistingMusicaSongIDs([...existingMusicaSongIDs, song.id]);
     AddSongToMusica(song);
+  }
+
+  const updateSongInPlaylist = async (playlistID: string, songID: SongID) => {
+    const { data, error } = await supabase
+        .from('Playlists')
+        .select('songs')
+        .eq('id', playlistID);
+  
+    if (error) {
+      console.error('Error adding song to playlist: ', error);
+      throw error;
+    }
+  
+    let songs: IPlaylistSong[] = data![0].songs;
+    const operation = songs.some((song) => song.songID === songID) ? 'remove' : 'add';
+  
+    if (operation === 'add') {
+      songs.push({
+        songID,
+        position: songs.length + 1,
+        dateAdded: Date.now()
+      });
+    } else {
+      songs = songs.filter((song) => song.songID !== songID);
+    }
+
+    const { error: insertError } = await supabase
+      .from('Playlists')
+      .update({ songs })
+      .eq('id', playlistID);
+
+    if (insertError) {
+      console.error('Error inserting updated songs array in playlist: ', insertError);
+      throw insertError;
+    }
+
+    setPlaylists(
+      playlists.map((playlist: IPlaylistReduced) => {
+        if (playlist.id === playlistID)
+          return { ...playlist, songs }
+        return playlist
+      })
+    );
   }
 
   return (
@@ -213,17 +285,20 @@ const Search = () => {
 
                 if (isAdded) {
                   return <AddedSpotifySongCard
-                    key={search_count * 100 + index}
+                    key={searchCount * 100 + index}
                     song={song}
+                    musicaSongID={ songID }
                     songIsLiked={ likedSongs.some((likedSong: TLikedSongData) => likedSong.songID === songID) }
                     onSongLikeToggle={ () => { toggleSongLikeStatus(songID, userID!) } }
                     songInQueue={ songsInQueue.some((_songID: SongID) => _songID === songID) }
                     onInQueueToggle={ () => { onInQueueToggle(songID, userID!) } }
                     onCopyShareLink={ () => { copyShareLink(songID) } }
+                    playlists={ playlists }
+                    updateSongInPlaylist={ updateSongInPlaylist }
                   />
                 } else {
                   return <NotAddedSpotifySongCard
-                    key={search_count * 100 + index}
+                    key={searchCount * 100 + index}
                     song={song}
                     onAdd={ () => { onAdd(song) } }
                   />
