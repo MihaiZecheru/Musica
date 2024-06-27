@@ -5,10 +5,13 @@ import { initMDB, Dropdown, Ripple } from 'mdb-ui-kit';
 interface Props {
   song: SpotifyAPISong,
   songIsLiked: boolean,
-  onSongLikeToggle: MouseEventHandler
+  onSongLikeToggle: MouseEventHandler,
+  songInQueue: boolean,
+  onInQueueToggle: MouseEventHandler,
+  onCopyShareLink: MouseEventHandler
 }
 
-const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle }: Props) => {
+const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle, songInQueue, onInQueueToggle, onCopyShareLink }: Props) => {
   useEffect(() => {
     initMDB({ Dropdown, Ripple });
   }, []);
@@ -58,9 +61,9 @@ const AddedSpotifySongCard = ({ song, songIsLiked, onSongLikeToggle }: Props) =>
           <ul className="dropdown-menu">
             <li><a className="dropdown-item" role="button"><i className="fas fa-plus"></i> Add to playlist</a></li>
             <li><a className="dropdown-item" role="button" onClick={ onSongLikeToggle }> { songIsLiked ? <div><i className="fas fa-heart"></i><span> Remove liked song</span></div> : <div><i className="far fa-heart"></i><span> Like song</span></div> }</a></li>
-            <li><a className="dropdown-item" role="button"><i className="fas fa-music"></i><span> Add to queue</span></a></li>
+            <li><a className="dropdown-item" role="button" onClick={ onInQueueToggle }>{ songInQueue ? <div><i className="fas fa-square-plus"></i><span> Remove from queue</span></div> : <div><i className="far fa-square-plus"></i><span> Add to queue</span></div> }</a></li>
             <li><hr className="dropdown-divider" /></li>
-            <li><a className="dropdown-item" role="button"><i className="fas fa-arrow-up-from-bracket"></i><span> Share</span></a></li>
+            <li><a className="dropdown-item" role="button" onClick={ onCopyShareLink }><i className="fas fa-share"></i><span> Copy share link</span></a></li>
           </ul>
         </div>
       </div>
