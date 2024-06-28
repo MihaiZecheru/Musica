@@ -9,8 +9,8 @@ import AddedSpotifySongCard from "./AddedSpotifySongCard";
 import AddSongToMusica from "../functions/AddSongToMusica";
 import { TLikedSongData } from "../database-types/ILikedSong";
 import IPlaylistSong from "../database-types/IPlaylistSong";
-import IPlaylist from "../database-types/IPlaylist";
 import IPlaylistReduced from "../database-types/IPlaylistReduced";
+import { useSearchParams } from "react-router-dom";
 
 const getExistingMusicaSongIDs = async (): Promise<SpotifySongID[]> => {
   const { data, error } = await supabase
@@ -77,10 +77,35 @@ const Search = () => {
   const [spotifyIDToSongIDMap, setSpotifyIDToSongIDMap] = useState<{ [spotifyID: SpotifySongID]: SongID }>({});
   const [playlists, setPlaylists] = useState<IPlaylistReduced[]>([]);
   const [lastAddedSong, setLastAddedSong] = useState<SpotifyAPISong | null>(null); // Used to refresh the component when the user adds a song to musica, due to the dropdown not working otherwise
+  const [searchParams] = useSearchParams();
+
+  const handleKeyPress = async (e: any) => {
+    if (e.key === "Enter") {
+      const s = (e.target as HTMLInputElement).value.trim();
+      if (s.length === 0) return;
+      setSearchResults(await searchSongs(s));
+      setSearchCount(searchCount + 1);
+    }
+  }
 
   useEffect(() => {
     const initializeData = async () => {
       initMDB({ Input });
+
+      // Check for redirect from another page
+      const searchQuery = searchParams.get('q');
+      if (searchQuery) {
+        const searchbox = document.getElementById('searchbox-navbar') as HTMLInputElement;
+        searchbox!.setAttribute('value', searchQuery);
+        searchbox?.focus();
+        // move cursor to end of input
+        searchbox?.setSelectionRange(searchQuery.length, searchQuery.length);
+        setSearchResults(await searchSongs(searchQuery));
+        setSearchCount(searchCount + 1);
+      }
+
+      // Set handleKeyPress event listener to searchbox
+      document.getElementById('searchbox-navbar')?.addEventListener('keypress', handleKeyPress);
 
       const user = await GetUser();
       setUserID(user.id as UserID);
@@ -211,15 +236,6 @@ const Search = () => {
     }
   }, [searchResults, lastAddedSong]);
 
-  const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      const s = (e.target as HTMLInputElement).value.trim();
-      if (s.length === 0) return;
-      setSearchResults(await searchSongs(s));
-      setSearchCount(searchCount + 1);
-    }
-  }
-
   const onAdd = async (song: SpotifyAPISong) => {
     setExistingMusicaSongIDs([...existingMusicaSongIDs, song.id]);
     const musicaSongID = await AddSongToMusica(song);
@@ -272,12 +288,6 @@ const Search = () => {
 
   return (
     <div>
-      <div className="w-100 d-flex justify-content-center mt-3">
-        <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
-          <input type="text" id="searchbox" className="form-control" onKeyDown={ handleKeyPress }/>
-          <label className="form-label" htmlFor="searchbox">Find new music</label>
-        </div>
-      </div>
       {
         searchResults.length > 0 ? 
           <div id="results">

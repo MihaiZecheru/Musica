@@ -1,14 +1,30 @@
 import logo from "../musica.png";
+import { useEffect, useState } from "react";
+import { initMDB, Input } from 'mdb-ui-kit';
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const userProfile = "https://mdbootstrap.com/img/new/avatars/2.jpg"; // TODO: make dynamic
+  const navigate = useNavigate();
+  const [userPfp, setUserPfp] = useState<string>("https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png"); // TODO: make dynamic
+
+  useEffect(() => {
+    initMDB({ Input });
+  }, []);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      const searchbox = document.getElementById("searchbox-navbar") as HTMLInputElement;
+      const searchQuery = searchbox.value.trim();
+      navigate(`/search/?q=${searchQuery}`);
+    }
+  }
 
   return (
     <div id="navbar">      
       <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <a className="navbar-brand mt-2 mt-lg-0" href="#">
+            <a className="navbar-brand mt-2 mt-lg-0" href="/home">
               <img
                 src={ logo }
                 height="30"
@@ -16,12 +32,20 @@ const Navbar = () => {
                 loading="lazy"
               />
             </a>
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">
               <li className="nav-item">
-                <a className="nav-link" href="/search">Find New</a>
+                <a className="nav-link" href="/queue"><i className="fas fa-stream"></i><span> Queue</span></a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/queue">Queue</a>
+                <a className="nav-link" href="/search">
+                  <div className="d-flex align-items-center">
+                    <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
+                      <i className="fas fa-magnifying-glass trailing"></i>
+                      <input type="text" id="searchbox-navbar" className="form-control form-icon-trailing" onKeyDown={ handleKeyDown } onClick={ (e) => e.preventDefault() }/>
+                      <label className="form-label" htmlFor="searchbox-navbar">Find new music</label>
+                    </div>
+                  </div>
+                </a>
               </li>
             </ul>
           </div>
@@ -68,7 +92,7 @@ const Navbar = () => {
                 aria-expanded="false"
               >
                 <img
-                  src={ userProfile }
+                  src={ userPfp }
                   className="rounded-circle"
                   height="25"
                   alt="Porfile"

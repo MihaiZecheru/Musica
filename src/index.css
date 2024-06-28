@@ -157,3 +157,8 @@ body {
 .i-span > i {
   margin-right: .25rem;
 }
+
+#navbar > nav {
+  padding-top: 0;
+  padding-bottom: 0;
+}
