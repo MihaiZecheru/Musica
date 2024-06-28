@@ -76,6 +76,7 @@ const Search = () => {
   const [songsInQueue, setSongsInQueue] = useState<SongID[]>([]);
   const [spotifyIDToSongIDMap, setSpotifyIDToSongIDMap] = useState<{ [spotifyID: SpotifySongID]: SongID }>({});
   const [playlists, setPlaylists] = useState<IPlaylistReduced[]>([]);
+  const [lastAddedSong, setLastAddedSong] = useState<SpotifyAPISong | null>(null); // Used to refresh the component when the user adds a song to musica, due to the dropdown not working otherwise
 
   useEffect(() => {
     const initializeData = async () => {
@@ -208,7 +209,7 @@ const Search = () => {
         removeAllEventListeners(dropdown as HTMLButtonElement);
       });
     }
-  }, [searchResults]);
+  }, [searchResults, lastAddedSong]);
 
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -222,6 +223,7 @@ const Search = () => {
   const onAdd = (song: SpotifyAPISong) => {
     setExistingMusicaSongIDs([...existingMusicaSongIDs, song.id]);
     AddSongToMusica(song);
+    setLastAddedSong(song);
   }
 
   const updateSongInPlaylist = async (playlistID: string, songID: SongID) => {
