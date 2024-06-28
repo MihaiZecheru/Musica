@@ -94,7 +94,7 @@ const Navbar = () => {
   if (!showContent) return (<></>);
   return (
     <div id="navbar">      
-      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary">
+      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-1 pb-1">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <a className="navbar-brand mt-2 mt-lg-0" href="/home">
@@ -107,15 +107,13 @@ const Navbar = () => {
             </a>
             <ul className="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">
               <li className="nav-item">
-                <a className="nav-link" href="/search">
-                  <div className="d-flex align-items-center">
-                    <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
-                      <i className="fas fa-magnifying-glass trailing"></i>
-                      <input type="text" id="searchbox-navbar" className="form-control form-icon-trailing" onKeyDown={ handleKeyDown } onClick={ (e) => e.preventDefault() }/>
-                      <label className="form-label" htmlFor="searchbox-navbar">Find new music</label>
-                    </div>
+                <div className="d-flex align-items-center">
+                  <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
+                    <i className="fas fa-magnifying-glass trailing"></i>
+                    <input type="text" id="searchbox-navbar" className="form-control form-icon-trailing" onKeyDown={ handleKeyDown } />
+                    <label className="form-label" htmlFor="searchbox-navbar">Find new music</label>
                   </div>
-                </a>
+                </div>
               </li>
             </ul>
           </div>
