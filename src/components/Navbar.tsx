@@ -15,11 +15,11 @@ function removeAllEventListeners(element: HTMLElement) {
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [userPfp, setUserPfp] = useState<string>("https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png"); // TODO: make dynamic
+  const [userPfp, setUserPfp] = useState<string>("https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png");
   const [userID, setUserID] = useState<UserID | null>(null);
   const [showContent, setShowContent] = useState<boolean>(false);
-
-  const dropdownStatuses: { [id: string]: boolean } = {};
+  const [dropdownStatus, setDropdownStatus] = useState<boolean>(false);
+  
   useEffect(() => {
     (async () => {
       const user: User = await GetUser();
@@ -45,43 +45,26 @@ const Navbar = () => {
 
       setShowContent(true);
     })();
-
-    // false if closed, true if open
-    setTimeout(() => {
-      initMDB({ Ripple });
-      const dropdown = document.getElementById('user-pfp-dropdown-navbar') as HTMLDivElement;
-      dropdownStatuses[dropdown.id] = false;
-      const _d = new Dropdown(dropdown);
-      
-      dropdown.addEventListener('click', () => {
-        if (dropdownStatuses[dropdown.id]) {
-          dropdownStatuses[dropdown.id] = false;
-          _d.hide();
-        }
-        else {
-          Object.keys(dropdownStatuses).forEach((key) => {
-            dropdownStatuses[key] = false;
-          });
-          dropdownStatuses[dropdown.id] = true;
-          _d.show();
-        }
-      });
-
-      dropdown.parentElement?.addEventListener('hidden.mdb.dropdown', () => {
-        dropdownStatuses[dropdown.id] = false;
-      });
-    }, 500);
-
-    return () => {
-      document.querySelectorAll('.btn-spc-dropdown').forEach((dropdown) => {
-        removeAllEventListeners(dropdown as HTMLButtonElement);
-      });
-    }
   }, []);
 
   useEffect(() => {
     initMDB({ Input, Ripple });
   }, [showContent]);
+
+  const handlePFPClick = () => {
+    const dropdownMenu = document.getElementById('user-pfp-dropdown-navbar-menu') as HTMLUListElement;
+
+    console.log(dropdownStatus);
+    if (dropdownStatus) {
+      console.log('hidden');
+      setDropdownStatus(false);
+      dropdownMenu.classList.remove('show');
+    } else {
+      console.log('showed');
+      setDropdownStatus(true);
+      dropdownMenu.classList.add('show');
+    }
+  }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -131,6 +114,7 @@ const Navbar = () => {
                 id="user-pfp-dropdown-navbar-button"
                 role="button"
                 aria-expanded="false"
+                onClick={ handlePFPClick }
               >
                 <img
                   src={ userPfp }
@@ -143,6 +127,8 @@ const Navbar = () => {
               <ul
                 className="dropdown-menu dropdown-menu-end"
                 aria-labelledby="user-pfp-dropdown-navbar-button"
+                id="user-pfp-dropdown-navbar-menu"
+                style={{ "position": "absolute", "inset": "0px 0px auto auto", "margin": "0px", "transform": "translate(0px, 27px)" }}
               >
                 <li>
                   <Link className="dropdown-item" to={ `/profile/${userID}` }>My profile</Link> { /* TODO: include friends here. display current pfp and allow change. have option to change username too */}
