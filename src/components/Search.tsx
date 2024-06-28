@@ -272,8 +272,8 @@ const Search = () => {
 
   return (
     <div>
-      <div>
-        <div className="form-outline" data-mdb-input-init>
+      <div className="w-100 d-flex justify-content-center mt-3">
+        <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
           <input type="text" id="searchbox" className="form-control" onKeyDown={ handleKeyPress }/>
           <label className="form-label" htmlFor="searchbox">Find new music</label>
         </div>
@@ -309,7 +309,7 @@ const Search = () => {
               })
             }
           </div>
-        : <p>No results found</p>
+        : <></> // No search results yet. Note: Searches will always return results
       }
     </div>
   );
