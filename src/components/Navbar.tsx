@@ -94,7 +94,7 @@ const Navbar = () => {
   if (!showContent) return (<></>);
   return (
     <div id="navbar">      
-      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-1 pb-1">
+      <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-2 pb-2">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <Link className="navbar-brand mt-2 mt-lg-0" to="/home">
