@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import supabase from "../config/supabase";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -141,7 +141,7 @@ const Register = () => {
                       </div>
 
                       <div className="mb-4">
-                        <span>Already have an account? </span><a href="/login">Go to login</a>
+                        <span>Already have an account? </span><Link to="/login">Go to login</Link>
                         
                       </div>
 

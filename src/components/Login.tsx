@@ -1,7 +1,7 @@
 import { Input, initMDB, Modal } from 'mdb-ui-kit';
 import { useEffect } from 'react';
 import supabase from '../config/supabase';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ const Login = () => {
 
                 <div className="d-flex justify-content-around align-items-center mb-4">
                   <div>
-                    <span>New to Musica?</span><a href="/register"> Register now</a>
+                    <span>New to Musica?</span><Link to="/register"> Register now</Link>
                   </div>
                   <a role="button" id="forgot-password-btn">Forgot password?</a>
                 </div>

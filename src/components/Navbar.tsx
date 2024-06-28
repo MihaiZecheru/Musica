@@ -1,7 +1,7 @@
 import logo from "../musica.png";
 import { useEffect, useState } from "react";
 import { initMDB, Input, Ripple, Dropdown } from 'mdb-ui-kit';
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserID } from "../database-types/ID";
 import GetUser from "../functions/GetUser";
 import supabase from "../config/supabase";
@@ -97,14 +97,14 @@ const Navbar = () => {
       <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-1 pb-1">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <a className="navbar-brand mt-2 mt-lg-0" href="/home">
+            <Link className="navbar-brand mt-2 mt-lg-0" to="/home">
               <img
                 src={ logo }
                 height="30"
                 alt="Musica Logo"
                 loading="lazy"
               />
-            </a>
+            </Link>
             <ul className="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">
               <li className="nav-item">
                 <div className="d-flex align-items-center">
@@ -119,10 +119,10 @@ const Navbar = () => {
           </div>
 
           <div className="d-flex align-items-center">
-            <a className="text-reset me-2" href="/queue">
+            <Link className="text-reset me-2" to="/queue">
               <i className="fas fa-stream"></i>
               <i className="fas fa-music"></i>
-            </a>
+            </Link>
 
             <div className="dropdown" id="user-pfp-dropdown-navbar">
               <a
@@ -145,16 +145,16 @@ const Navbar = () => {
                 aria-labelledby="user-pfp-dropdown-navbar-button"
               >
                 <li>
-                  <a className="dropdown-item" href={ `/profile/${userID}` }>My profile</a> { /* TODO: include friends here. display current pfp and allow change. have option to change username too */}
+                  <Link className="dropdown-item" to={ `/profile/${userID}` }>My profile</Link> { /* TODO: include friends here. display current pfp and allow change. have option to change username too */}
                 </li>
                 <li>
-                  <a className="dropdown-item" href="/search/playlist">Playlists Search</a> { /* Search for a new playlist. have option for creating a new one yourself */ }
+                  <Link className="dropdown-item" to="/search/playlist">Playlists Search</Link> { /* Search for a new playlist. have option for creating a new one yourself */ }
                 </li>
                 <li>
-                  <a className="dropdown-item" href="/create-playlist">Create Playlist</a> { /* TODO: allow option for importing an existing playlist here, make it noticable, easily visible */ }
+                  <Link className="dropdown-item" to="/create-playlist">Create Playlist</Link> { /* TODO: allow option for importing an existing playlist here, make it noticable, easily visible */ }
                 </li>
                 <li>
-                  <a className="dropdown-item" href="/logout">Logout</a>
+                  <Link className="dropdown-item" to="/logout">Logout</Link>
                 </li>
               </ul>
             </div>
