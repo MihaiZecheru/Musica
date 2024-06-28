@@ -7,7 +7,9 @@ const Logout = () => {
   
   useEffect(() => {
     (async () => {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {};
       navigate('/login');
     })();
   }, []);

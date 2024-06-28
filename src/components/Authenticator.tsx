@@ -14,10 +14,13 @@ const Authenticator = ({ component }: Props) => {
 
   useEffect(() => {
     (async () => {
-      const user = await GetUser();
-
-      if (!user) navigate('/login');
-      else setUser(user);
+      try {
+        const user = await GetUser();
+        if (!user) navigate('/login');
+        else setUser(user);
+      } catch (error) {
+        navigate('/login');
+      }
     })();
   }, []);
 
