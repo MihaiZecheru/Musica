@@ -96,7 +96,7 @@ const Login = () => {
                   <div>
                     <span>New to Musica?</span><a href="/register"> Register now</a>
                   </div>
-                  <a href="#" role="button" id="forgot-password-btn">Forgot password?</a>
+                  <a role="button" id="forgot-password-btn">Forgot password?</a>
                 </div>
 
                 <button type="submit" data-mdb-button-init data-mdb-ripple-init className="btn btn-primary btn-lg btn-block" id="login-btn">Login</button>
