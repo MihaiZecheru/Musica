@@ -122,7 +122,7 @@ const Search = () => {
 
   const toggleSongLikeStatus = async (songID: SongID, userID: UserID) => {
     const isLiked = likedSongs.some((likedSong: TLikedSongData) => likedSong.songID === songID);
-    
+    console.log(isLiked, songID);
     let newLikedSongs: TLikedSongData[];
     if (isLiked) {
       // Unlike the song
@@ -220,10 +220,12 @@ const Search = () => {
     }
   }
 
-  const onAdd = (song: SpotifyAPISong) => {
+  const onAdd = async (song: SpotifyAPISong) => {
     setExistingMusicaSongIDs([...existingMusicaSongIDs, song.id]);
-    AddSongToMusica(song);
+    const musicaSongID = await AddSongToMusica(song);
     setLastAddedSong(song);
+    console.log(song.id, musicaSongID);
+    setSpotifyIDToSongIDMap({ ...spotifyIDToSongIDMap, [song.id]: musicaSongID });
   }
 
   const updateSongInPlaylist = async (playlistID: string, songID: SongID) => {

@@ -1,3 +1,4 @@
+import { SongID } from "../database-types/ID";
 import AddSongToDatabase from "./AddSongToDatabase";
 import { SpotifyAPISong } from "./spotifyService";
 import { YoutubeAPIVideo, searchYoutubeForMatchingVideo } from "./youtubeService";
@@ -7,15 +8,15 @@ function convertDurationToSeconds(duration: string): number {
   return minutes * 60 + seconds;
 }
 
-export default async function AddSongToMusica(song: SpotifyAPISong) {
+export default async function AddSongToMusica(song: SpotifyAPISong): Promise<SongID> {
   const video: YoutubeAPIVideo = await searchYoutubeForMatchingVideo(song.name, song.artists[0].name);
   
   if (!video) {
     console.error(`Could not find a video for ${song.name} by ${song.artists[0].name}`);
-    return;
+    throw new Error(`Could not find a video for ${song.name} by ${song.artists[0].name}`);
   }
 
-  AddSongToDatabase(
+  return await AddSongToDatabase(
     video.url,                                                    // videoURL
     song.name,                                                    // title
     song.artists.map((s: { name: string }) => s.name).join(', '), // artists
