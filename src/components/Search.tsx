@@ -37,7 +37,7 @@ function removeAllEventListeners(element: HTMLElement) {
 
 async function getLikedSongsAndQueue(): Promise<{ likedSongs: TLikedSongData[], songQueue: SongID[] }> {
   const user = await GetUser();
-  
+
   const { data, error } = await supabase
     .from('UserMusicLibrary')
     .select('likedSongs,songQueue')
@@ -54,17 +54,27 @@ async function getLikedSongsAndQueue(): Promise<{ likedSongs: TLikedSongData[], 
 }
 
 async function getPlaylists(userID: UserID): Promise<IPlaylistReduced[]> {
-  const { data, error } = await supabase
+  const { data: data_playlistLibrary, error: error_playlistLibrary } = await supabase
+    .from("UserMusicLibrary")
+    .select('playlistLibrary')
+    .eq("userID", userID);
+
+  if (error_playlistLibrary) {
+    console.error("error fetching UserMusicLibrary: ", data_playlistLibrary);
+    throw error_playlistLibrary;
+  }
+  
+  const { data: data_playlists, error: error_playlists } = await supabase
     .from('Playlists')
     .select('id,title,songs')
-    .eq('creatorID', userID);
+    .in('id', data_playlistLibrary![0].playlistLibrary);
 
-  if (error) {
-    console.error('Error retrieving playlists: ', error);
-    throw error;
+  if (error_playlists) {
+    console.error('Error retrieving playlists: ', error_playlists);
+    throw error_playlists;
   }
 
-  return data as IPlaylistReduced[];
+  return data_playlists as IPlaylistReduced[];
 }
 
 const Search = () => {
