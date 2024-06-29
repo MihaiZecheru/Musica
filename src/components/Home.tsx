@@ -29,7 +29,7 @@ const Home = () => {
         .eq("userID", _userID);
 
       if (error_UserMusicLibrary) {
-        console.error("error fetching UserMusicLibrary: ", data_UserMusicLibrary);
+        console.error("error fetching UserMusicLibrary: ", error_UserMusicLibrary);
         throw error_UserMusicLibrary;
       }
 
