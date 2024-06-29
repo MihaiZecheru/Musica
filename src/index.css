@@ -185,3 +185,8 @@ body {
   height: 3rem!important;
   color: var(--musica-pink-dark)!important;
 }
+
+::selection {
+  background-color: var(--musica-pink-dark)!important;
+  color: white!important;
+}
