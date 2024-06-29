@@ -1,25 +1,21 @@
 import logo from "../musica.png";
 import { useEffect, useState } from "react";
-import { initMDB, Input, Ripple, Dropdown } from 'mdb-ui-kit';
-import { Link, useNavigate } from "react-router-dom";
+import { initMDB, Input, Ripple } from 'mdb-ui-kit';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UserID } from "../database-types/ID";
 import GetUser from "../functions/GetUser";
 import supabase from "../config/supabase";
 import { User } from "@supabase/supabase-js";
 
-function removeAllEventListeners(element: HTMLElement) {
-  const newElement = element.cloneNode(true);
-  element.parentNode?.replaceChild(newElement, element);
-  return newElement;
-}
-
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/home';
   const [userPfp, setUserPfp] = useState<string>("https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png");
   const [userID, setUserID] = useState<UserID | null>(null);
   const [showContent, setShowContent] = useState<boolean>(false);
   const [dropdownStatus, setDropdownStatus] = useState<boolean>(false);
-  
+
   useEffect(() => {
     (async () => {
       const user: User = await GetUser();
@@ -54,7 +50,6 @@ const Navbar = () => {
   const handlePFPClick = () => {
     const dropdownMenu = document.getElementById('user-pfp-dropdown-navbar-menu') as HTMLUListElement;
 
-    console.log(dropdownStatus);
     if (dropdownStatus) {
       console.log('hidden');
       setDropdownStatus(false);
@@ -76,18 +71,21 @@ const Navbar = () => {
 
   if (!showContent) return (<></>);
   return (
-    <div id="navbar">      
+    <div id="navbar" className={ isHome ? 'navbar-home-left-margin': ''}>
       <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-2 pb-2">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <Link className="navbar-brand mt-2 mt-lg-0" to="/home">
-              <img
-                src={ logo }
-                height="30"
-                alt="Musica Logo"
-                loading="lazy"
-              />
-            </Link>
+            {
+              !isHome &&
+              <Link className="navbar-brand mt-2 mt-lg-0" to="/home">
+                <img
+                  src={ logo }
+                  height="30"
+                  alt="Musica Logo"
+                  loading="lazy"
+                />
+              </Link>
+            }
             <ul className="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">
               <li className="nav-item">
                 <div className="d-flex align-items-center">

@@ -162,3 +162,7 @@ body {
   padding-top: 0;
   padding-bottom: 0;
 }
+
+.navbar-home-left-margin {
+  margin-left: 240px!important;
+}
