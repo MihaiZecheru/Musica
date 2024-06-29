@@ -166,3 +166,22 @@ body {
 .navbar-home-left-margin {
   margin-left: 240px!important;
 }
+
+.loading-cover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--musica-gray);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinner-border {
+  width: 3rem!important;
+  height: 3rem!important;
+  color: var(--musica-pink-dark)!important;
+}
