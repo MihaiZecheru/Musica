@@ -1,8 +1,14 @@
+import { useState } from "react";
+import IPlaylist from "../database-types/IPlaylist";
+import SideNav from "./SideNav";
+
 const Home = () => {
+  const [playlists, setPlaylists] = useState<IPlaylist[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   return (
     <>
-      <h1>Home</h1>
-      <p>Welcome to the Home page</p>
+      <SideNav playlists={ playlists }/>
     </>
   );
 }
