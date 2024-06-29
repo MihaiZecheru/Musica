@@ -30,7 +30,7 @@ const Home = () => {
 
       if (error_UserMusicLibrary) {
         console.error("error fetching UserMusicLibrary: ", data_UserMusicLibrary);
-        throw data_UserMusicLibrary;
+        throw error_UserMusicLibrary;
       }
 
       const userMusicLibrary = data_UserMusicLibrary![0] as { likedSongs: TLikedSongData[], songQueue: SongID[], playlistLibrary: PlaylistID[] };
