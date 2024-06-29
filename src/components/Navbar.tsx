@@ -132,7 +132,7 @@ const Navbar = () => {
                   <Link className="dropdown-item" to={ `/profile/${userID}` }>My profile</Link> { /* TODO: include friends here. display current pfp and allow change. have option to change username too */}
                 </li>
                 <li>
-                  <Link className="dropdown-item" to="/search/playlist">Playlists Search</Link> { /* Search for a new playlist. have option for creating a new one yourself */ }
+                  <Link className="dropdown-item" to="/search/playlist">Find Playlists</Link> { /* Search for a new playlist. have option for creating a new one yourself */ }
                 </li>
                 <li>
                   <Link className="dropdown-item" to="/create-playlist">Create Playlist</Link> { /* TODO: allow option for importing an existing playlist here, make it noticable, easily visible */ }
