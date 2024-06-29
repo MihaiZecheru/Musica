@@ -105,13 +105,23 @@ const Search = () => {
       // Check for redirect from another page
       const searchQuery = searchParams.get('q');
       if (searchQuery) {
-        const searchbox = document.getElementById('searchbox-navbar') as HTMLInputElement;
-        searchbox!.setAttribute('value', searchQuery);
-        searchbox?.focus();
-        // move cursor to end of input
-        searchbox?.setSelectionRange(searchQuery.length, searchQuery.length);
-        setSearchResults(await searchSongs(searchQuery));
-        setSearchCount(searchCount + 1);
+        const searchbox = document.getElementById('searchbox-navbar') as HTMLInputElement | null;
+        const func = async (searchbox: HTMLInputElement) => {
+          searchbox.value = searchQuery;
+          searchbox.focus();
+          // move cursor to end of input
+          searchbox?.setSelectionRange(searchQuery.length, searchQuery.length);
+          setSearchResults(await searchSongs(searchQuery));
+          setSearchCount(searchCount + 1);
+        }
+        if (searchbox) {
+          func(searchbox);
+        } else {
+          setTimeout(() => {
+            const searchbox = document.getElementById('searchbox-navbar') as HTMLInputElement | null;
+            if (searchbox) func(searchbox);
+          }, 500);
+        }
       }
 
       // Set handleKeyPress event listener to searchbox
