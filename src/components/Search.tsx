@@ -39,7 +39,7 @@ async function getLikedSongsAndQueue(): Promise<{ likedSongs: TLikedSongData[], 
   const user = await GetUser();
   
   const { data, error } = await supabase
-    .from('LikedSongsAndQueue')
+    .from('UserMusicLibrary')
     .select('likedSongs,songQueue')
     .eq('userID', user.id);
 
@@ -162,14 +162,14 @@ const Search = () => {
     
     setLikedSongs(newLikedSongs);
     const { error } = await supabase
-        .from('LikedSongsAndQueue')
-        .update({ likedSongs: newLikedSongs })
-        .eq('userID', userID);
+      .from('UserMusicLibrary')
+      .update({ likedSongs: newLikedSongs })
+      .eq('userID', userID);
 
-      if (error) {
-        console.error('Error updating liked songs: ', error);
-        throw error;
-      }
+    if (error) {
+      console.error('Error updating liked songs: ', error);
+      throw error;
+    }
   }
 
   const onInQueueToggle = async (songID: SongID, userID: UserID) => {
@@ -186,7 +186,7 @@ const Search = () => {
 
     setSongsInQueue(newSongQueue);
     const { error } = await supabase
-      .from('LikedSongsAndQueue')
+      .from('UserMusicLibrary')
       .update({ songQueue: newSongQueue })
       .eq('userID', userID);
 
