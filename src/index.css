@@ -279,3 +279,12 @@ body, #root, .content {
 #home-main::-webkit-scrollbar-track {
   background-color: var(--musica-gray);
 }
+
+.duration > i {
+  display: none;
+  cursor: pointer;
+}
+
+.playlist-song:hover .duration > i {
+  display: inline;
+}

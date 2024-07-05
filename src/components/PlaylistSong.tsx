@@ -26,15 +26,16 @@ const PlaylistSong = ({ song, position, dateAdded }: Props) => {
           <img src={ song.imageURL } alt={ song.title } height="60px" />
           <div className="v-stack ms-3">
             <h4 className="no-margin-bottom musica-dark-blue text-truncate song-title">{ song.title }</h4>
-            <h6 className="white-color text-truncate">{ song.artists }</h6>
+            <h6 className="white-color mb-0 text-truncate">{ song.artists }</h6>
           </div>
         </div>
         <div className="white-color">
-          <h5 className="no-drag">{ dateString }</h5>
+          <h5 className="no-drag mb-0">{ dateString }</h5>
         </div>
-        {/* <i className="fas fa-heart musica-dark-pink"></i> */}
-        <div className="white-color pe-4">
-          <h5 className="no-drag">{ formatDuration(song.duration) }</h5>
+        <div className="white-color pe-5 d-flex align-items-center duration">
+          <i className="fas fa-heart musica-light-blue"></i>
+          <i className="fas fa-ellipsis musica-light-blue ms-3 me-3"></i>
+          <h5 className="no-drag mb-0">{ formatDuration(song.duration) }</h5>
         </div>
       </div>
     </div>
