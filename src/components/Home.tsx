@@ -7,26 +7,25 @@ import GetUser from "../functions/GetUser";
 import { PlaylistID, SongID, UserID } from "../database-types/ID";
 import Loading from "./Loading";
 import { TLikedSongData } from "../database-types/ILikedSong";
+import LikedSongsDisplay from "./LikedSongsDisplay";
+import PlaylistDisplay from "./PlaylistDisplay";
 
 const Home = () => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [userID, setUserID] = useState<string | null>(null);
   const [likedSongs, setLikedSongs] = useState<TLikedSongData[]>([]);
-  const [playlistLibrary, setPlaylistLibrary] = useState<PlaylistID[]>([]);
   const [playlists, setPlaylists] = useState<IPlaylist[]>([]);
-  const [queueSongIDs, setQueueSongIDs] = useState<SongID[]>([]);
   const [queue, setQueue] = useState<ISong[]>([]);
+  const [activePlaylist, setActivePlaylist] = useState<IPlaylist | null>(null);
   const loadingStart = Date.now();
 
   useEffect(() => {
     (async () => {
-      const _userID: UserID = (await GetUser()).id as UserID;
-      setUserID(_userID);
+      const userID: UserID = (await GetUser()).id as UserID;
 
       const { data: data_UserMusicLibrary, error: error_UserMusicLibrary } = await supabase
         .from("UserMusicLibrary")
         .select()
-        .eq("userID", _userID);
+        .eq("userID", userID);
 
       if (error_UserMusicLibrary) {
         console.error("error fetching UserMusicLibrary: ", error_UserMusicLibrary);
@@ -35,8 +34,6 @@ const Home = () => {
 
       const userMusicLibrary = data_UserMusicLibrary![0] as { likedSongs: TLikedSongData[], songQueue: SongID[], playlistLibrary: PlaylistID[] };
       setLikedSongs(userMusicLibrary.likedSongs);
-      setQueueSongIDs(userMusicLibrary.songQueue);
-      setPlaylistLibrary(userMusicLibrary.playlistLibrary);
 
       const { data: data_playlists, error: error_playlists } = await supabase
         .from("Playlists")
@@ -82,7 +79,14 @@ const Home = () => {
 
   return (
     <>
-      <SideNav queue={ queue } playlists={ playlists } />
+      <SideNav queue={ queue } playlists={ playlists } setActivePlaylist={ setActivePlaylist }/>
+      <main id="home-main">
+        {
+          activePlaylist
+          ? <PlaylistDisplay playlist={ activePlaylist } />
+          : <LikedSongsDisplay likedSongs={ likedSongs } />
+        }
+      </main>
     </>
   );
 }
