@@ -41,12 +41,12 @@ const LikedSongsDisplay = ({ likedSongs }: Props) => {
         </div>
       </div>
       <div className="d-flex justify-content-between mt-4 ms-4 me-4">
-        <div style={{ "width": "calc(25rem + 60px + 3rem)" }} className="d-flex align-items-center">
+        <div style={{ "width": "calc(25rem + 60px)" }} className="d-flex align-items-center">
           <h5 className="musica-dark-blue no-drag" style={{ "marginRight": "1rem" }}>#</h5>
           <h5 className="musica-dark-blue no-drag">Song</h5>
         </div>
         <h5 className="musica-dark-blue no-drag">Date Added</h5>
-        <h5 className="musica-dark-blue no-drag">Duration</h5>
+        <h5 className="musica-dark-blue no-drag"><i className="far fa-clock"></i></h5>
       </div>
       <div className="d-flex justify-content-center">
         <hr className="w-100 ms-4 me-4 mt-0" />
