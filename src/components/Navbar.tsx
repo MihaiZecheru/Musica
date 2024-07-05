@@ -65,6 +65,7 @@ const Navbar = () => {
     if (event.key === "Enter") {
       const searchbox = document.getElementById("searchbox-navbar") as HTMLInputElement;
       const searchQuery = searchbox.value.trim();
+      if (!searchQuery) return;
       navigate(`/search/?q=${searchQuery}`);
     }
   }
