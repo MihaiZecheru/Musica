@@ -41,7 +41,7 @@ const LikedSongsDisplay = ({ likedSongs }: Props) => {
         </div>
       </div>
       <div className="d-flex justify-content-between mt-4 ms-4 me-4">
-        <div style={{ "width": "calc(25rem + 60px)" }} className="d-flex align-items-center">
+        <div style={{ "width": "calc(21rem + 60px)" }} className="d-flex align-items-center">
           <h5 className="musica-dark-blue no-drag" style={{ "marginRight": "1rem" }}>#</h5>
           <h5 className="musica-dark-blue no-drag">Song</h5>
         </div>
