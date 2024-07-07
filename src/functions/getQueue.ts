@@ -2,7 +2,7 @@ import supabase from "../config/supabase";
 import { SongID, UserID } from "../database-types/ID";
 import { GetUserID } from "./GetUser";
 
-export async function getQueue(): Promise<SongID[]> {
+export default async function getQueue(): Promise<SongID[]> {
   const userID: UserID = await GetUserID();
 
   const { data, error } = await supabase
