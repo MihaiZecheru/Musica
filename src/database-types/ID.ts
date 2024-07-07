@@ -12,3 +12,6 @@ export type PlaylistID = Branded<ID, "PlaylistID">;
 export function generate_id(): ID {
   return Math.random().toString(36).substring(2, 8) as ID;
 }
+
+// Youtube Video ID
+export type VideoID = Branded<string, "VideoID">;

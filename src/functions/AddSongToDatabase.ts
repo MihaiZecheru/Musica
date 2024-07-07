@@ -1,10 +1,10 @@
 import supabase from "../config/supabase";
-import { SongID } from "../database-types/ID";
+import { SongID, VideoID } from "../database-types/ID";
 
-export default async function addSongToSupabase(videoURL: string, title: string, artists: string, year: number, duration: number, imageURL: string, spotifySongID: string): Promise<SongID> {
+export default async function addSongToSupabase(videoID: VideoID, title: string, artists: string, year: number, duration: number, imageURL: string, spotifySongID: string): Promise<SongID> {
   const { data, error } = await supabase
     .from('Songs')
-    .insert([{ videoURL, title, artists, year, duration, imageURL, spotifySongID }])
+    .insert([{ videoID, title, artists, year, duration, imageURL, spotifySongID }])
     .select('id');
 
   if (error) {

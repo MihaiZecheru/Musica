@@ -1,8 +1,8 @@
-import { SongID, SpotifySongID } from "./ID";
+import { SongID, SpotifySongID, VideoID } from "./ID";
 
 export default interface ISong {
   id: SongID;
-  videoURL: string;
+  videoID: VideoID;
   title: string;
   artists: string;
   year: number; // 4-digit year

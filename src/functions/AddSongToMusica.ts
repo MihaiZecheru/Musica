@@ -1,4 +1,4 @@
-import { SongID } from "../database-types/ID";
+import { SongID, VideoID } from "../database-types/ID";
 import AddSongToDatabase from "./AddSongToDatabase";
 import { SpotifyAPISong } from "./spotifyService";
 import { YoutubeAPIVideo, searchYoutubeForMatchingVideo } from "./youtubeService";
@@ -6,6 +6,10 @@ import { YoutubeAPIVideo, searchYoutubeForMatchingVideo } from "./youtubeService
 function convertDurationToSeconds(duration: string): number {
   const [minutes, seconds] = duration.split(':').map(Number);
   return minutes * 60 + seconds;
+}
+
+function getID(url: string): VideoID {
+  return url.split('=')[1] as VideoID;
 }
 
 export default async function AddSongToMusica(song: SpotifyAPISong): Promise<SongID> {
@@ -17,7 +21,7 @@ export default async function AddSongToMusica(song: SpotifyAPISong): Promise<Son
   }
 
   return await AddSongToDatabase(
-    video.url,                                                    // videoURL
+    getID(video.url),                                                    // videoID
     song.name,                                                    // title
     song.artists.map((s: { name: string }) => s.name).join(', '), // artists
     parseInt(song.album.release_date.substring(0, 4)),            // year
