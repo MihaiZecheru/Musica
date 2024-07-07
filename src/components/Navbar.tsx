@@ -91,7 +91,7 @@ const Navbar = () => {
                   <div className="form-outline" data-mdb-input-init style={{ "maxWidth": "15rem" }}>
                     <i className="fas fa-magnifying-glass trailing"></i>
                     <input type="text" id="searchbox-navbar" className="form-control form-icon-trailing" onKeyDown={ handleKeyDown } />
-                    <label className="form-label" htmlFor="searchbox-navbar">Find new music</label>
+                    <label className="form-label no-drag" htmlFor="searchbox-navbar">Find new music</label>
                   </div>
                 </div>
               </li>
