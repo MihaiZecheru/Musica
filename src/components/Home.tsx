@@ -9,6 +9,7 @@ import Loading from "./Loading";
 import { TLikedSongData } from "../database-types/ILikedSong";
 import LikedSongsDisplay from "./LikedSongsDisplay";
 import PlaylistDisplay from "./PlaylistDisplay";
+import AudioControls from "./AudioControls";
 
 const Home = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -79,7 +80,7 @@ const Home = () => {
 
   return (
     <>
-      <SideNav queue={ queue } playlists={ playlists } setActivePlaylist={ setActivePlaylist }/>
+      <SideNav queue={ queue } playlists={ playlists } setActivePlaylist={ setActivePlaylist } />
       <main id="home-main">
         {
           activePlaylist
@@ -87,6 +88,7 @@ const Home = () => {
           : <LikedSongsDisplay likedSongs={ likedSongs } />
         }
       </main>
+      <AudioControls />
     </>
   );
 }
