@@ -203,6 +203,9 @@ img {
 body, #root, .content {
   width: 100vw!important;
   height: 100vh!important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--musica-pink-light) var(--musica-gray);
+  overflow-x: hidden;
 }
 
 .musica-light-blue {
@@ -263,12 +266,6 @@ body, #root, .content {
 
 #home-main {
   overflow-y: auto!important;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--musica-pink-light) var(--musica-gray);
-  overflow-x: hidden;
 }
 
 ::-webkit-scrollbar {
