@@ -48,26 +48,26 @@ const SideNav = ({ playlists, queue, setActivePlaylist }: Props) => {
         <li className="sidenav-item">
           <span className="sidenav-subheading text-muted">Playlists</span>
           <Link className="sidenav-link no-drag" to="">
-            <i className="fas fa-plus fa-fw me-3"></i><span>Create</span>
+            <i className="fas fa-plus fa-fw me-3 white-color"></i><span>Create</span>
           </Link>
         </li>
         <li className="sidenav-item">
           <Link className="sidenav-link no-drag" to="">
-            <i className="fas fa-magnifying-glass fa-fw me-3"></i><span>Discover</span>
+            <i className="fas fa-magnifying-glass fa-fw me-3 white-color"></i><span>Discover</span>
           </Link>
         </li>
 
         <li className="sidenav-item pt-3">
           <span className="sidenav-subheading text-muted">Library</span>
           <a className="sidenav-link" role="button" onClick={ () => setActivePlaylist(null) }>
-            <i className="fas fa-heart fa-fw me-3"></i><span>Liked Songs</span></a>
+            <i className="fas fa-heart fa-fw me-3 white-color"></i><span>Liked Songs</span></a>
         </li>
 
         {
           playlists.reverse().map((playlist: IPlaylist) => (
             <li className="sidenav-item" key={ playlist.id }>
               <a className="sidenav-link" role="button" onClick={ () => playlistElementClick(playlist.id) }>
-                <i className="fas fa-music fa-fw me-3"></i><span className="text-truncate">{ playlist.title }</span>
+                <i className="fas fa-music fa-fw me-3 white-color"></i><span className="text-truncate">{ playlist.title }</span>
               </a>
             </li>
           ))
@@ -76,7 +76,7 @@ const SideNav = ({ playlists, queue, setActivePlaylist }: Props) => {
         <li className="sidenav-item pt-3">
           <span className="sidenav-subheading text-muted">Queue</span>
           <Link className="sidenav-link no-drag" to="/search">
-            <i className="fas fa-plus fa-fw me-3"></i><span>Add To Queue</span>
+            <i className="fas fa-plus fa-fw me-3 white-color"></i><span>Add To Queue</span>
           </Link>
         </li>
 
@@ -85,7 +85,7 @@ const SideNav = ({ playlists, queue, setActivePlaylist }: Props) => {
           queue.reverse().map((song: ISong) => (
             <li className="sidenav-item" key={ song.id }>
               <a className="sidenav-link" role="button">
-                <i className="fas fa-music fa-fw me-3"></i><span className="text-truncate">{ song.title }</span>
+                <i className="fas fa-music fa-fw me-3 white-color"></i><span className="text-truncate">{ song.title }</span>
               </a>
             </li>
           ))
