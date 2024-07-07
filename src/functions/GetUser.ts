@@ -1,5 +1,6 @@
 import { User } from "@supabase/supabase-js";
 import supabase from "../config/supabase";
+import { UserID } from "../database-types/ID";
 
 export default async function GetUser(): Promise<User> {
   const { data, error } = await supabase.auth.getUser();
@@ -10,4 +11,7 @@ export default async function GetUser(): Promise<User> {
   }
 
   return data.user;
+}
+export async function GetUserID(): Promise<UserID> {
+  return (await GetUser()).id as UserID;
 }
