@@ -16,12 +16,12 @@ const PlaylistSong = ({ song, position, dateAdded }: Props) => {
   const date = formatDate(new Date(dateAdded));
   
   return (
-    <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song" onMouseEnter={ () => setShowPlayButton(true) } onMouseLeave={ () => setShowPlayButton(false) }>
+    <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song no-drag" onMouseEnter={ () => setShowPlayButton(true) } onMouseLeave={ () => setShowPlayButton(false) }>
       <div className="w-100 d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center">
+        <div className="d-flex align-items-center" onClick={ showPlayButton ? () => { playSong(song) } : () => {} } >
           {
             showPlayButton
-            ? <a role="button" onClick={ () => playSong(song) }><i className="fas fa-play me-3 musica-light-blue"></i></a>
+            ? <a role="button" onClick={ () => { playSong(song) } }><i className="fas fa-play me-3 white-color"></i></a>
             : <h5 className="musica-dark-pink me-3 no-drag">{ position + 1 }</h5>
           }
           <img src={ song.imageURL } alt={ song.title } height="60px" />
@@ -34,8 +34,8 @@ const PlaylistSong = ({ song, position, dateAdded }: Props) => {
           <h5 className="no-drag mb-0">{ date }</h5>
         </div>
         <div className="white-color pe-5 d-flex align-items-center duration">
-          <i className="fas fa-heart musica-light-blue"></i>
-          <i className="fas fa-ellipsis musica-light-blue ms-3 me-3"></i>
+          <i className="fas fa-heart white-color"></i>
+          <i className="fas fa-ellipsis white-color ms-3 me-3"></i>
           <h5 className="no-drag mb-0">{ formatDuration(song.duration) }</h5>
         </div>
       </div>
