@@ -7,10 +7,11 @@ import likedSongsPlaylistIcon from "../liked-songs-playlist.png";
 import PlaylistSong from "./PlaylistSong";
 
 interface Props {
-  likedSongs: TLikedSongData[]
+  likedSongs: TLikedSongData[];
+  onClickPlaySong: Function;
 }
 
-const LikedSongsDisplay = ({ likedSongs }: Props) => {
+const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
   const [songs, setSongs] = useState<ISong[]>([]);
 
   useEffect(() => {
@@ -52,7 +53,15 @@ const LikedSongsDisplay = ({ likedSongs }: Props) => {
         <hr className="w-100 ms-4 me-4 mt-0" />
       </div>
       <div className="ms-2 songs-container">
-        { songs.map((song: ISong, index: number) => <PlaylistSong key={ song.id } song={ song } position={ index } dateAdded={ likedSongs.find((likedSong: TLikedSongData) => likedSong.songID === song.id)?.dateAdded! } />) }
+        {
+          songs.map((song: ISong, index: number) =>
+          <PlaylistSong
+            key={ song.id }
+            song={ song }
+            position={ index }
+            onClickPlaySong={ onClickPlaySong }
+            dateAdded={ likedSongs.find((likedSong: TLikedSongData) => likedSong.songID === song.id)?.dateAdded! } />)
+          }
       </div>
     </>
   );

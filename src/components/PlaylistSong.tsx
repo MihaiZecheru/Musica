@@ -2,26 +2,26 @@ import { useState } from "react";
 import ISong from "../database-types/ISong";
 import formatDate from "../functions/formatDate";
 import formatDuration from "../functions/formatDuration";
-import playSong from "../functions/playSong";
 
 interface Props {
   song: ISong;
   position: number;
   dateAdded: number;
+  onClickPlaySong: Function;
 }
 
-const PlaylistSong = ({ song, position, dateAdded }: Props) => {
+const PlaylistSong = ({ song, position, dateAdded, onClickPlaySong }: Props) => {
   const [showPlayButton, setShowPlayButton] = useState<boolean>(false);
 
   const date = formatDate(new Date(dateAdded));
-  
+
   return (
     <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song no-drag" onMouseEnter={ () => setShowPlayButton(true) } onMouseLeave={ () => setShowPlayButton(false) }>
       <div className="w-100 d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center" onClick={ showPlayButton ? () => { playSong(song) } : () => {} } >
+        <div className="d-flex align-items-center" onClick={ () => { onClickPlaySong(song) } } >
           {
             showPlayButton
-            ? <a role="button" onClick={ () => { playSong(song) } }><i className="fas fa-play me-3 white-color"></i></a>
+            ? <a role="button" onClick={ () => { onClickPlaySong(song) } }><i className="fas fa-play me-3 white-color"></i></a>
             : <h5 className="musica-dark-pink me-3 no-drag">{ position + 1 }</h5>
           }
           <img src={ song.imageURL } alt={ song.title } height="60px" />

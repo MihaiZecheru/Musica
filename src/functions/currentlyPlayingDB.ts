@@ -1,16 +1,8 @@
 import supabase from "../config/supabase";
 import ISong from "../database-types/ISong";
-import ExtractAudioURL from "./ExtractAudioURL";
 import { GetUserID } from "./GetUser";
-import PlayAudio from "./PlayAudio";
 
-export default async function playSong(song: ISong) {
-  if (song.id === await getCurrentlyPlaying(song)) return;
-  setCurrentlyPlaying(song);
-  PlayAudio(await ExtractAudioURL(song.videoID));
-}
-
-async function setCurrentlyPlaying(song: ISong) {
+export async function setCurrentlyPlayingInDB(song: ISong) {
   const { error } = await supabase
     .from("UserMusicLibrary")
     .update({ currentlyPlaying: song.id })
@@ -22,7 +14,7 @@ async function setCurrentlyPlaying(song: ISong) {
   }
 }
 
-async function getCurrentlyPlaying(song: ISong) {
+export async function getCurrentlyPlayingFromDB(song: ISong) {
   const { data, error } = await supabase
     .from("UserMusicLibrary")
     .select("currentlyPlaying")

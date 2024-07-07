@@ -74,14 +74,15 @@ const Register = () => {
             userID,
             likedSongs: [],
             songQueue: [],
-            playlistLibrary: []
+            playlistLibrary: [],
+            currentlyPlaying: null
           }]);
 
         if (error1?.message || error?.message || error2?.message) {
           const skipMsg = `Database error saving new user null value in column "id" of relation "UserInfo" violates not-null constraint`;
           if (error1?.message === skipMsg || error?.message === skipMsg) return;
           const modal = document.getElementById('registration-error-modal') as HTMLElement;
-          (modal.querySelector('.modal-body') as HTMLElement).textContent = error1?.message ? error1!.message : error!.message;
+          (modal.querySelector('.modal-body') as HTMLElement).textContent = error?.message || error1?.message || error2?.message as string;
           new Modal(modal).show();
           modal.addEventListener('hidden.bs.modal', () => {
             document.querySelector(".modal-backdrop")?.remove();
