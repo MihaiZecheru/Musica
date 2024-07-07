@@ -51,11 +51,9 @@ const Navbar = () => {
     const dropdownMenu = document.getElementById('user-pfp-dropdown-navbar-menu') as HTMLUListElement;
 
     if (dropdownStatus) {
-      console.log('hidden');
       setDropdownStatus(false);
       dropdownMenu.classList.remove('show');
     } else {
-      console.log('showed');
       setDropdownStatus(true);
       dropdownMenu.classList.add('show');
     }
