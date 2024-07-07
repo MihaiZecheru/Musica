@@ -70,7 +70,7 @@ const Navbar = () => {
 
   if (!showContent) return (<></>);
   return (
-    <div id="navbar" className={ isHome ? 'navbar-home-left-margin': ''}>
+    <div id="navbar" className={ isHome ? 'navbar-home-left-margin shadow-5-strong': 'shadow-5-strong'}>
       <nav className="navbar navbar-expand-lg navbar-light bg-body-tertiary pt-2 pb-2">
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
