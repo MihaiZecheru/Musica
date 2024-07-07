@@ -21,7 +21,7 @@ const SideNav = ({ playlists, queue, setActivePlaylist }: Props) => {
     <nav
       data-mdb-sidenav-init
       id="sidenav-9"
-      className="sidenav sidenav-sm no-drag"
+      className="sidenav sidenav-sm no-drag shadow-5-strong"
       data-mdb-hidden="false"
       data-mdb-accordion="true"
     >
