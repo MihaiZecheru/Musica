@@ -1,4 +1,8 @@
+import { useState } from "react";
 import ISong from "../database-types/ISong";
+import formatDate from "../functions/formatDate";
+import formatDuration from "../functions/formatDuration";
+import playSong from "../functions/playSong";
 
 interface Props {
   song: ISong;
@@ -6,23 +10,20 @@ interface Props {
   dateAdded: number;
 }
 
-function formatDuration(duration: number): string {
-  const minutes = Math.floor(duration / 60);
-  const seconds = duration % 60;
-  return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
-}
-
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
 const PlaylistSong = ({ song, position, dateAdded }: Props) => {
-  const date = new Date(dateAdded);
-  const dateString = `${months[date.getMonth() + 1]} ${date.getDate()}, ${date.getFullYear()}`;
+  const [showPlayButton, setShowPlayButton] = useState<boolean>(false);
+
+  const date = formatDate(new Date(dateAdded));
   
   return (
-    <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song">
+    <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song" onMouseEnter={ () => setShowPlayButton(true) } onMouseLeave={ () => setShowPlayButton(false) }>
       <div className="w-100 d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center">
-          <h5 className="musica-dark-pink me-3 no-drag">{ position + 1 }</h5>
+          {
+            showPlayButton
+            ? <a role="button" onClick={ () => playSong(song) }><i className="fas fa-play me-3 musica-light-blue"></i></a>
+            : <h5 className="musica-dark-pink me-3 no-drag">{ position + 1 }</h5>
+          }
           <img src={ song.imageURL } alt={ song.title } height="60px" />
           <div className="v-stack ms-3">
             <h4 className="no-margin-bottom musica-dark-blue text-truncate song-title">{ song.title }</h4>
@@ -30,7 +31,7 @@ const PlaylistSong = ({ song, position, dateAdded }: Props) => {
           </div>
         </div>
         <div className="white-color">
-          <h5 className="no-drag mb-0">{ dateString }</h5>
+          <h5 className="no-drag mb-0">{ date }</h5>
         </div>
         <div className="white-color pe-5 d-flex align-items-center duration">
           <i className="fas fa-heart musica-light-blue"></i>
