@@ -1,28 +1,37 @@
 import supabase from "../config/supabase";
-import { SongID } from "../database-types/ID";
 import ISong from "../database-types/ISong";
 import ExtractAudioURL from "./ExtractAudioURL";
 import { GetUserID } from "./GetUser";
 import PlayAudio from "./PlayAudio";
-import getQueue from "./getQueue";
 
 export default async function playSong(song: ISong) {
-  const queue: SongID[] = await getQueue();
-  if (queue.length > 0 && queue[0] === song.id) return;
-  prependQueue(song, queue);
+  if (song.id === await getCurrentlyPlaying(song)) return;
+  setCurrentlyPlaying(song);
   PlayAudio(await ExtractAudioURL(song.videoID));
 }
 
-async function prependQueue(song: ISong, existingQueue: SongID[]) {
-  existingQueue.unshift(song.id);
-
-  const { error: error_updateQueue } = await supabase
+async function setCurrentlyPlaying(song: ISong) {
+  const { error } = await supabase
     .from("UserMusicLibrary")
-    .update({ songQueue: existingQueue })
-    .eq('userID', await GetUserID());
+    .update({ currentlyPlaying: song.id })
+    .eq("userID", await GetUserID());
 
-  if (error_updateQueue) {
-    console.error('error updating queue: ', error_updateQueue);
-    throw error_updateQueue;
+  if (error) {
+    console.log("Error setting currently playing song:", error);
+    throw error;
   }
+}
+
+async function getCurrentlyPlaying(song: ISong) {
+  const { data, error } = await supabase
+    .from("UserMusicLibrary")
+    .select("currentlyPlaying")
+    .eq("userID", await GetUserID());
+
+  if (error) {
+    console.log("Error getting currently playing song:", error);
+    throw error;
+  }
+
+  return data[0].currentlyPlaying;
 }
