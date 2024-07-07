@@ -203,7 +203,6 @@ img {
 body, #root, .content {
   width: 100vw!important;
   height: 100vh!important;
-  overflow: hidden;
 }
 
 .musica-light-blue {
@@ -264,19 +263,23 @@ body, #root, .content {
 
 #home-main {
   overflow-y: auto!important;
-  scrollbar-width: thin;
-  scrollbar-color: var(--musica-pink-light) var(--musica-gray);
 }
 
-#home-main::-webkit-scrollbar {
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--musica-pink-light) var(--musica-gray);
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
   width: thin;
 }
 
-#home-main::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   border-radius: 5rem!important;
 }
 
-#home-main::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background-color: var(--musica-gray);
 }
 
