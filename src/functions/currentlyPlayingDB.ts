@@ -2,10 +2,10 @@ import supabase from "../config/supabase";
 import ISong from "../database-types/ISong";
 import { GetUserID } from "./GetUser";
 
-export async function setCurrentlyPlayingInDB(song: ISong) {
+export async function setCurrentlyPlayingInDB(song: ISong | null) {
   const { error } = await supabase
     .from("UserMusicLibrary")
-    .update({ currentlyPlaying: song.id })
+    .update({ currentlyPlaying: song === null ? null : song?.id })
     .eq("userID", await GetUserID());
 
   if (error) {

@@ -140,7 +140,33 @@ const Home = () => {
   }
 
   const playNextSong = async () => {
-    // TODO: implement playNextSong
+    if (queue.length === 0) {
+      currentlyPlaying.current = null;
+      currentlyPlayingAudioURL.current = "null";
+      setCurrentlyPlayingInDB(null);
+      setPaused(true);
+      return;
+    } else {
+      setLoadingNextSong(true);
+      const nextSong = queue.shift()!;
+      currentlyPlaying.current = nextSong;
+      currentlyPlayingAudioURL.current = await ExtractAudioURL(nextSong.videoID);
+      if (audioRef.current)
+        audioRef.current!.src = currentlyPlayingAudioURL.current;
+      setCurrentlyPlayingInDB(nextSong);
+
+      const { error } = await supabase
+        .from("UserMusicLibrary")
+        .update({ "songQueue": queue.map(song => song.id) })
+        .eq("userID", userID);
+
+      if (error) {
+        console.error("error updating queue: ", error);
+        throw error;
+      }
+
+      setLoadingNextSong(false);
+    }
   }
 
   const onSongPositionChange = (e: any) => {
@@ -230,6 +256,8 @@ const Home = () => {
           {
             currentlyPlaying.current &&
             <div className="d-flex">
+              {/* This image is here to make the spinner take up the whole box */}
+              <img height="50px" className="mb-1" />
               <img src={ currentlyPlaying.current?.imageURL } alt={ currentlyPlaying.current?.title } height="50px" />
               <div className="ms-3">
                 <h5>{ currentlyPlaying.current?.title }</h5>
@@ -244,6 +272,7 @@ const Home = () => {
               </div>
             </div>
           }
+          { !currentlyPlaying.current && <h5 className="text-center">No song currently playing</h5> }
           <audio className="ac-audio" controls src={ currentlyPlayingAudioURL.current } ref={ audioRef } onError={ handleAudioError } onEnded={ playNextSong } onTimeUpdate={ onAudioTimeUpdate }></audio>
           <div className="center-controls d-flex justify-content-center align-items-center">
             <div className="d-flex">
