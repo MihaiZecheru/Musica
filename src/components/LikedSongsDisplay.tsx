@@ -18,6 +18,7 @@ const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
     (async () => {
       likedSongs.sort((a: TLikedSongData, b: TLikedSongData) => a.dateAdded - b.dateAdded);
       const songIDs: SongID[] = likedSongs.map((song: TLikedSongData) => song.songID);
+      
       const { data: songs, error } = await supabase
         .from("Songs")
         .select()
@@ -30,7 +31,7 @@ const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
 
       setSongs(songs);
     })();
-  }, []);
+  }, [likedSongs]);
 
   return (
     <>
@@ -55,13 +56,15 @@ const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
       <div className="ms-2 songs-container">
         {
           songs.map((song: ISong, index: number) =>
-          <PlaylistSong
-            key={ song.id }
-            song={ song }
-            position={ index }
-            onClickPlaySong={ onClickPlaySong }
-            dateAdded={ likedSongs.find((likedSong: TLikedSongData) => likedSong.songID === song.id)?.dateAdded! } />)
-          }
+            <PlaylistSong
+              key={ song.id }
+              song={ song }
+              position={ index }
+              onClickPlaySong={ onClickPlaySong }
+              dateAdded={ likedSongs.find((likedSong: TLikedSongData) => likedSong.songID === song.id)?.dateAdded! }
+            />
+          )
+        }
       </div>
     </>
   );
