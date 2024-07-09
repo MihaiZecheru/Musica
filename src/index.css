@@ -383,3 +383,9 @@ body, #root, .content {
 .playlist-song:hover .playlist-song-hover-icons {
   display: inline;
 }
+
+.loading-song-spinner > .spinner-border {
+  width: 2rem!important;
+  height: 2rem!important;
+  color: var(--musica-pink-dark)!important;
+}

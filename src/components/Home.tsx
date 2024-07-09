@@ -1,5 +1,5 @@
 import { Range, initMDB } from "mdb-ui-kit";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import IPlaylist from "../database-types/IPlaylist";
 import SideNav from "./SideNav";
 import ISong from "../database-types/ISong";
@@ -26,6 +26,7 @@ const Home = () => {
   const [paused, setPaused] = useState<boolean>(true);
   const [volume, setVolume] = useState<number>(100);
   const [userID, setUserID] = useState<UserID | null>(null);
+  const [loadingNextSong, setLoadingNextSong] = useState<boolean>(true);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const songPositionElement = useRef<HTMLInputElement>(null);
@@ -80,6 +81,7 @@ const Home = () => {
         currentlyPlaying.current = song;
         currentlyPlayingAudioURL.current = await ExtractAudioURL(song.videoID);
       }
+      setLoadingNextSong(false);
 
       // check if at least 1000ms have passed since loadingStart
       if (loadingStart + 1000 < Date.now()) {
@@ -105,6 +107,7 @@ const Home = () => {
   }, [paused]);
 
   const onClickPlaySong = async (song: ISong) => {
+    setLoadingNextSong(true);
     const ele = audioRef.current as HTMLAudioElement;
     setPaused(true);
     currentlyPlayingAudioURL.current = "null";
@@ -114,7 +117,10 @@ const Home = () => {
     currentlyPlayingAudioURL.current = await ExtractAudioURL(song.videoID);
     ele.src = currentlyPlayingAudioURL.current;
     setCurrentlyPlayingInDB(song);
-    ele.oncanplay = () => setTimeout(() => setPaused(false), 1000);
+    ele.oncanplay = () => setTimeout(() => {
+      setPaused(false);
+      setLoadingNextSong(false);
+    }, 1000);
   }
 
   const onVolumeChange = (e: any) => {
@@ -180,6 +186,19 @@ const Home = () => {
     }
   }
 
+  const onKeyDown = useCallback((e: any) => {
+    // toggle play/pause on spacebar press
+    if (e.code === "Space") {
+      e.preventDefault();
+      setPaused(prevPaused => !prevPaused);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+
   if (loading) {
     return ( <Loading /> );
   }
@@ -194,55 +213,69 @@ const Home = () => {
           : <LikedSongsDisplay likedSongs={ likedSongs } onClickPlaySong={ onClickPlaySong } removeFromLikedSongs={ removeFromLikedSongs } addToLikedSongs={ addToLikedSongs } />
         }
       </main>
-      <div id="audio-controls" className="shadow-5-strong">
+      <div id="audio-controls" className={ loadingNextSong ? "shadow-5-strong d-flex justify-content-center align-items-center" : "shadow-5-strong" }>
         {
-          currentlyPlaying.current &&
-          <div className="d-flex">
-            <img src={ currentlyPlaying.current?.imageURL } alt={ currentlyPlaying.current?.title } height="50px" />
-            <div className="ms-3">
-              <h5>{ currentlyPlaying.current?.title }</h5>
-              <h6>{ currentlyPlaying.current?.artists }</h6>
-            </div>
-            <div className="d-flex align-items-center">
-              {
-                likedSongs.find((song: TLikedSongData) => song.songID === currentlyPlaying.current?.id)
-                ? <a role="button" onClick={ () => removeFromLikedSongs(currentlyPlaying.current!.id) }><i className="fas fa-heart ms-3 fa-lg musica-light-pink"></i></a>
-                : <a role="button" onClick={ () => addToLikedSongs(currentlyPlaying.current!.id) }><i className="far fa-heart ms-3 fa-lg musica-light-pink"></i></a>
-              }
+          loadingNextSong &&
+          <div className="d-flex justify-content-center align-items-center">
+            {/* This image is here to make the spinner take up the whole box */}
+            <img height="50px" className="mb-1" />
+            <div className="loading-song-spinner">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
             </div>
           </div>
         }
-        <audio className="ac-audio" controls src={ currentlyPlayingAudioURL.current } ref={ audioRef } onError={ handleAudioError } onEnded={ playNextSong } onTimeUpdate={ onAudioTimeUpdate }></audio>
-        <div className="center-controls d-flex justify-content-center align-items-center">
-          <div className="d-flex">
-            <span className="me-2" ref={ currentTimeDisplay }>{ currentlyPlaying.current ? formatDuration(Math.round(audioRef.current?.currentTime || 0)) : "0.00" }</span>
-            <div className="range" data-mdb-range-init>
-              <input type="range" className="form-range" id="song-position" ref={ songPositionElement } onChange={ onSongPositionChange } max={ currentlyPlaying.current?.duration } />
+        { !loadingNextSong && <>
+          {
+            currentlyPlaying.current &&
+            <div className="d-flex">
+              <img src={ currentlyPlaying.current?.imageURL } alt={ currentlyPlaying.current?.title } height="50px" />
+              <div className="ms-3">
+                <h5>{ currentlyPlaying.current?.title }</h5>
+                <h6>{ currentlyPlaying.current?.artists }</h6>
+              </div>
+              <div className="d-flex align-items-center">
+                {
+                  likedSongs.find((song: TLikedSongData) => song.songID === currentlyPlaying.current?.id)
+                  ? <a role="button" onClick={ () => removeFromLikedSongs(currentlyPlaying.current!.id) }><i className="fas fa-heart ms-3 fa-lg musica-light-pink"></i></a>
+                  : <a role="button" onClick={ () => addToLikedSongs(currentlyPlaying.current!.id) }><i className="far fa-heart ms-3 fa-lg musica-light-pink"></i></a>
+                }
+              </div>
             </div>
-            <span className="ms-2">{ currentlyPlaying.current && formatDuration(currentlyPlaying.current!.duration) }</span>
-          </div>
-          <div>
-            {
-              paused
-              ? <button className="btn-floating musica-btn" onClick={ () => { if (currentlyPlaying.current) setPaused(false) } }><i className="fas fa-circle-play"></i></button>
-              : <button className="btn-floating musica-btn" onClick={ () => setPaused(true) }><i className="fas fa-pause"></i></button>
-            }
-          </div>
-        </div>
-        <div className="right-controls">
-          <div className="d-flex align-items-center white-color">
-            {
-              volume == 0
-              ? <i className="fas fa-volume-xmark me-2"></i>
-              : volume <= 50
-              ? <i className="fas fa-volume-low me-2"></i>
-              : <i className="fas fa-volume-high me-2"></i>
-            }
-            <div className="range" data-mdb-range-init>
-              <input type="range" className="form-range" id="volume-slider" onChange={ onVolumeChange } />
+          }
+          <audio className="ac-audio" controls src={ currentlyPlayingAudioURL.current } ref={ audioRef } onError={ handleAudioError } onEnded={ playNextSong } onTimeUpdate={ onAudioTimeUpdate }></audio>
+          <div className="center-controls d-flex justify-content-center align-items-center">
+            <div className="d-flex">
+              <span className="me-2" ref={ currentTimeDisplay }>{ currentlyPlaying.current ? formatDuration(Math.round(audioRef.current?.currentTime || 0)) : "0.00" }</span>
+              <div className="range" data-mdb-range-init>
+                <input type="range" className="form-range" id="song-position" ref={ songPositionElement } onChange={ onSongPositionChange } max={ currentlyPlaying.current?.duration } />
+              </div>
+              <span className="ms-2">{ currentlyPlaying.current && formatDuration(currentlyPlaying.current!.duration) }</span>
+            </div>
+            <div>
+              {
+                paused
+                ? <button className="btn-floating musica-btn" onClick={ () => { if (currentlyPlaying.current) setPaused(false) } }><i className="fas fa-circle-play"></i></button>
+                : <button className="btn-floating musica-btn" onClick={ () => setPaused(true) }><i className="fas fa-pause"></i></button>
+              }
             </div>
           </div>
-        </div>
+          <div className="right-controls">
+            <div className="d-flex align-items-center white-color">
+              {
+                volume == 0
+                ? <i className="fas fa-volume-xmark me-2"></i>
+                : volume <= 50
+                ? <i className="fas fa-volume-low me-2"></i>
+                : <i className="fas fa-volume-high me-2"></i>
+              }
+              <div className="range" data-mdb-range-init>
+                <input type="range" className="form-range" id="volume-slider" onChange={ onVolumeChange } />
+              </div>
+            </div>
+          </div>
+        </> }
       </div>
     </>
   );
