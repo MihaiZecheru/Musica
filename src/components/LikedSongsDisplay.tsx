@@ -9,9 +9,11 @@ import PlaylistSong from "./PlaylistSong";
 interface Props {
   likedSongs: TLikedSongData[];
   onClickPlaySong: Function;
+  removeFromLikedSongs: Function;
+  addToLikedSongs: Function;
 }
 
-const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
+const LikedSongsDisplay = ({ likedSongs, onClickPlaySong, removeFromLikedSongs, addToLikedSongs }: Props) => {
   const [songs, setSongs] = useState<ISong[]>([]);
 
   useEffect(() => {
@@ -62,6 +64,9 @@ const LikedSongsDisplay = ({ likedSongs, onClickPlaySong }: Props) => {
               position={ index }
               onClickPlaySong={ onClickPlaySong }
               dateAdded={ likedSongs.find((likedSong: TLikedSongData) => likedSong.songID === song.id)?.dateAdded! }
+              songIsLiked={ (songID: SongID) => likedSongs.some((likedSong: TLikedSongData) => likedSong.songID === songID) }
+              removeFromLikedSongs={ removeFromLikedSongs }
+              addToLikedSongs={ addToLikedSongs }
             />
           )
         }

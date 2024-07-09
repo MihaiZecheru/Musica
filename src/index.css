@@ -375,3 +375,11 @@ body, #root, .content {
 #song-position + .thumb > .thumb-value {
   visibility: hidden;
 }
+
+.playlist-song-hover-icons {
+  display: none;
+}
+
+.playlist-song:hover .playlist-song-hover-icons {
+  display: inline;
+}

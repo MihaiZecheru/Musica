@@ -4,7 +4,7 @@ import IPlaylist from "../database-types/IPlaylist";
 import SideNav from "./SideNav";
 import ISong from "../database-types/ISong";
 import supabase from "../config/supabase";
-import GetUser from "../functions/GetUser";
+import { GetUserID } from "../functions/GetUser";
 import { PlaylistID, SongID, UserID } from "../database-types/ID";
 import Loading from "./Loading";
 import { TLikedSongData } from "../database-types/ILikedSong";
@@ -25,6 +25,7 @@ const Home = () => {
   const currentlyPlayingAudioURL = useRef<string>('null');
   const [paused, setPaused] = useState<boolean>(true);
   const [volume, setVolume] = useState<number>(100);
+  const [userID, setUserID] = useState<UserID | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const songPositionElement = useRef<HTMLInputElement>(null);
@@ -33,12 +34,13 @@ const Home = () => {
 
   useEffect(() => {
     (async () => {
-      const userID: UserID = (await GetUser()).id as UserID;
+      const _userID: UserID = await GetUserID();
+      setUserID(_userID);
 
       const { data: data_UserMusicLibrary, error: error_UserMusicLibrary } = await supabase
         .from("UserMusicLibrary")
         .select()
-        .eq("userID", userID);
+        .eq("userID", _userID);
 
       if (error_UserMusicLibrary) {
         console.error("error fetching UserMusicLibrary: ", error_UserMusicLibrary);
@@ -145,6 +147,39 @@ const Home = () => {
     currentTimeDisplay.current!.innerText = formatDuration(Math.round(e.target.currentTime));
   }
 
+  const addToLikedSongs = async (songID: SongID) => {
+    if (!currentlyPlaying.current) return;
+    const likedSongData: TLikedSongData = { songID, dateAdded: Date.now() };
+    const updatedSongData = [...likedSongs, likedSongData];
+    setLikedSongs(updatedSongData);
+
+    const { error } = await supabase
+      .from("UserMusicLibrary")
+      .update({ "likedSongs": updatedSongData })
+      .eq("userID", userID);
+
+    if (error) {
+      console.error("error adding song to liked songs: ", error);
+      throw error;
+    }
+  }
+
+  const removeFromLikedSongs = async (songID: SongID) => {
+    if (!currentlyPlaying.current) return;
+    const updatedLikedSongs = likedSongs.filter((song: TLikedSongData) => song.songID !== songID);
+    setLikedSongs(updatedLikedSongs);
+
+    const { error } = await supabase
+      .from("UserMusicLibrary")
+      .update({ "likedSongs": updatedLikedSongs })
+      .eq("userID", userID);
+
+    if (error) {
+      console.error("error removing song from liked songs: ", error);
+      throw error;
+    }
+  }
+
   if (loading) {
     return ( <Loading /> );
   }
@@ -156,7 +191,7 @@ const Home = () => {
         {
           activePlaylist
           ? <PlaylistDisplay playlist={ activePlaylist } />
-          : <LikedSongsDisplay likedSongs={ likedSongs } onClickPlaySong={ onClickPlaySong } />
+          : <LikedSongsDisplay likedSongs={ likedSongs } onClickPlaySong={ onClickPlaySong } removeFromLikedSongs={ removeFromLikedSongs } addToLikedSongs={ addToLikedSongs } />
         }
       </main>
       <div id="audio-controls" className="shadow-5-strong">
@@ -171,8 +206,8 @@ const Home = () => {
             <div className="d-flex align-items-center">
               {
                 likedSongs.find((song: TLikedSongData) => song.songID === currentlyPlaying.current?.id)
-                ? <a role="button"><i className="fas fa-heart ms-3 fa-lg musica-light-pink"></i></a>
-                : <a role="button"><i className="far fa-heart ms-3 fa-lg musica-light-pink"></i></a>
+                ? <a role="button" onClick={ () => removeFromLikedSongs(currentlyPlaying.current!.id) }><i className="fas fa-heart ms-3 fa-lg musica-light-pink"></i></a>
+                : <a role="button" onClick={ () => addToLikedSongs(currentlyPlaying.current!.id) }><i className="far fa-heart ms-3 fa-lg musica-light-pink"></i></a>
               }
             </div>
           </div>
@@ -180,7 +215,7 @@ const Home = () => {
         <audio className="ac-audio" controls src={ currentlyPlayingAudioURL.current } ref={ audioRef } onError={ handleAudioError } onEnded={ playNextSong } onTimeUpdate={ onAudioTimeUpdate }></audio>
         <div className="center-controls d-flex justify-content-center align-items-center">
           <div className="d-flex">
-            <span className="me-2" ref={ currentTimeDisplay }>{ currentlyPlaying.current ? formatDuration(Math.round(audioRef.current!.currentTime)) : "0.00" }</span>
+            <span className="me-2" ref={ currentTimeDisplay }>{ currentlyPlaying.current ? formatDuration(Math.round(audioRef.current?.currentTime || 0)) : "0.00" }</span>
             <div className="range" data-mdb-range-init>
               <input type="range" className="form-range" id="song-position" ref={ songPositionElement } onChange={ onSongPositionChange } max={ currentlyPlaying.current?.duration } />
             </div>

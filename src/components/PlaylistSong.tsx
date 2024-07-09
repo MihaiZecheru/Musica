@@ -8,12 +8,19 @@ interface Props {
   position: number;
   dateAdded: number;
   onClickPlaySong: Function;
+  songIsLiked: Function;
+  removeFromLikedSongs: Function;
+  addToLikedSongs: Function;
 }
 
-const PlaylistSong = ({ song, position, dateAdded, onClickPlaySong }: Props) => {
+const PlaylistSong = ({ song, position, dateAdded, onClickPlaySong, songIsLiked, removeFromLikedSongs, addToLikedSongs }: Props) => {
   const [showPlayButton, setShowPlayButton] = useState<boolean>(false);
 
   const date = formatDate(new Date(dateAdded));
+
+  const toggleMenuDropDown = () => {
+    // TODO: implement
+  }
 
   return (
     <div key={ song.id } className="w-100 ps-3 mb-2 playlist-song no-drag" onMouseEnter={ () => setShowPlayButton(true) } onMouseLeave={ () => setShowPlayButton(false) }>
@@ -34,8 +41,12 @@ const PlaylistSong = ({ song, position, dateAdded, onClickPlaySong }: Props) => 
           <h5 className="no-drag mb-0">{ date }</h5>
         </div>
         <div className="white-color pe-5 d-flex align-items-center duration">
-          <i className="fas fa-heart white-color"></i>
-          <i className="fas fa-ellipsis white-color ms-3 me-3"></i>
+          {
+            songIsLiked(song.id)
+            ? <a role="button" onClick={ () => removeFromLikedSongs(song.id) }><i className="fas fa-heart musica-light-blue me-3 playlist-song-hover-icons"></i></a>
+            : <a role="button" onClick={ () => addToLikedSongs(song.id) }><i className="far fa-heart musica-light-blue me-3 playlist-song-hover-icons"></i></a>
+          }
+          <a role="button" onClick={ toggleMenuDropDown }><i className="fas fa-ellipsis musica-light-blue ms-3 me-3 playlist-song-hover-icons"></i></a>
           <h5 className="no-drag mb-0">{ formatDuration(song.duration) }</h5>
         </div>
       </div>
