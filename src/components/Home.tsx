@@ -278,7 +278,7 @@ const Home = () => {
             <div className="d-flex">
               <span className="me-2" ref={ currentTimeDisplay }>{ currentlyPlaying.current ? formatDuration(Math.round(audioRef.current?.currentTime || 0)) : "0.00" }</span>
               <div className="range" data-mdb-range-init>
-                <input type="range" className="form-range" id="song-position" ref={ songPositionElement } onChange={ onSongPositionChange } max={ currentlyPlaying.current?.duration } />
+                <input type="range" className="form-range" id="song-position" ref={ songPositionElement } onChange={ onSongPositionChange } max={ currentlyPlaying.current?.duration } value="0" />
               </div>
               <span className="ms-2">{ currentlyPlaying.current && formatDuration(currentlyPlaying.current!.duration) }</span>
             </div>
